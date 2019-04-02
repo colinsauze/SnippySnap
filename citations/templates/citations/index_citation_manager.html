@@ -1,0 +1,25 @@
+{% extends "citations/base.html" %}
+
+{% block container %}
+	<div id="container">
+		<!-- TODO: replace with proper managers page -->
+		<a id="author_link" href="/citations/author">Authors</a><br/>
+	   	<a id="work_link" href="/citations/work">Works</a><br/>
+	   	<a id="edition_link" href="/citations/edition">Editions</a><br/>
+	   	<a id="series_link" href="/citations/series">Series</a><br/>
+	   	<a id="onlinecorpus_link" href="/citations/onlinecorpus">Online Corpus</a><br/>
+	   	<a id="citations_link" href="/citations/citation">Citations</a><br/>
+	   	<!--<a id="comcitations_link" href="/citations/comcitation">Commentary Citations</a><br/>
+	   	<a id="biblindex_link" href="/citations/biblindex_citation">Biblindex Citations</a>-->
+	</div>
+{% endblock %}
+
+{% block footer %}
+<div id="footer">
+	{% if switch_button == True %}
+		<a class="left_foot pure-button" id="switch_project_button" href="{{ switch_url }}">
+			Switch project
+		</a>
+	{% endif %}
+</div>
+{% endblock %}

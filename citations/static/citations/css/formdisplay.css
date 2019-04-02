@@ -1,0 +1,210 @@
+/* CSS for all forms in the citations application */
+
+/* generally relavent to forms */
+/*
+body{
+	font-family: Arial;
+	font-size: 11pt;
+}
+
+
+
+h1 {
+	font-size: 16pt;
+	color: black;
+	margin: 0px;
+	padding: 0px;
+}
+*/
+
+h2 {
+	font-size: 11pt;
+	color: gray;
+	margin: 0px;
+}
+
+fieldset{
+    border: none;
+    padding: 0px;
+}
+
+div.form_section{
+	border-bottom: 1px solid gray;
+	padding-bottom: 15px;
+	width: 100%;
+}
+
+label.top {
+	display: inline-block;
+	margin-top: .8em;
+	margin-right: .4em;
+}
+
+label.top input[type=checkbox] {
+	display: block;
+}
+
+input[readonly] {
+	background-color: lightgrey;
+}
+
+.checkbox_label {
+	position: relative;
+ 	top: -20px;
+}
+
+.width_half, .width_half input, .width_half select {
+	width: 15.8em;
+}
+
+.width_full, .width_full input {
+	width: 32.3em;
+}
+
+.width_quarter,  .width_quarter input, .width_quarter select {
+	width: 7.5em;
+}
+
+
+input[type=text], textarea {
+	border:2px inset threeDface;
+    border-radius:4px;
+}
+
+.column {
+	float: left;
+	width: 16.5em;
+}
+
+br {
+	clear: left;
+}
+
+option.obsolete {
+	color: silver;
+}
+
+input[type=button] {
+	height: 20px;
+}
+
+/* submission related */
+
+#submit_section input {
+	width: 16em;
+	margin-top: 10px;
+	margin-right: .4em;
+}
+
+.error {
+    background-color: #F5A9A9 !important;
+}
+
+.missing {
+	/*border:2px inset #F78181 !important;*/
+    border-radius:4px;
+    color: red !important;
+}
+
+.error_message {
+	position:fixed;
+	top:0;
+ 	left:0;
+ 	width:700px;
+ 	padding: 5px;
+ 	background-color: #D8D8D8;
+ 	border: 2px solid red;
+}
+
+.error_message #error_title {
+	color: red;
+}
+
+#error_close {
+	float: right;
+	color: blue;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+input[type=button] {
+	border:2px outset threeDface;
+	border-radius:5px;
+	height: 30px;
+}
+
+input.delete_button {
+	background-color: #F5A9A9;
+	border:2px outset #F5A9A9;
+}
+
+input.delete_button:hover {
+	background-color: #F8E0E0;
+	border:2px outset #F8E0E0;
+}
+
+/***********************************************************************/
+/* author form specifics */
+
+#author_form #born_label,
+#author_form #born_label input,
+#author_form #died_label,
+#author_form #died_label input {
+	width: 11.7em;
+}
+
+#author_form #author_checkboxes {
+	width: 16.5em;
+}
+
+#author_form #born_is_approximate,
+#author_form #died_is_approximate {
+	margin-left:0px;
+}
+
+#author_form #biblindex_identifiers input, #author_form #biblia_patristica_identifiers input {
+	width: 30em;
+	margin-top: 4px;
+}
+
+#author_form #biblindex_identifiers img, #author_form #biblia_patristica_identifiers img {
+	vertical-align: middle;
+    margin-left: 5px;
+}
+
+#author_form .add_logo {
+	margin-top: 5px;
+}
+
+/***********************************************************************/
+/* work form specifics */
+
+#cit_work_form #date_year_label,
+#cit_work_form #date_year_label input {
+	width: 11.7em;
+}
+
+#cit_work_form #date_approximate {
+	margin-left:0px;
+}
+
+#work_form #biblindex_identifiers input, #work_form #biblia_patristica_identifiers input {
+	width: 30em;
+	margin-top: 4px;
+}
+
+#work_form #biblindex_identifiers img, #work_form #biblia_patristica_identifiers img, #work_form #other_possible_authors img {
+	vertical-align: middle;
+    margin-left: 5px;
+}
+
+#work_form .add_logo {
+	margin-top: 5px;
+}
+
+/***********************************************************************/
+/* edition form specifics */
+
+#cit_edition_form #url_label input {
+	width: 28.5em;
+}

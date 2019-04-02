@@ -1,0 +1,83 @@
+{% extends "transcriptions/base.html" %}
+{% load static %}
+{% load transcription_filters %}
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'common/js/utils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'common/js/auto-complete.js' %}"></script>
+	<script type="text/javascript" src="{% static 'transcriptions/js/search.js' %}"></script>
+	<script type="text/javascript" src="{% static 'transcriptions/js/results.js' %}"></script>
+	<script type="text/javascript" src="{% static 'common/js/forms.js' %}"></script>
+	<link rel=stylesheet href="{% static 'transcriptions/css/layout.css' %}" type="text/css"/>
+	<link rel=stylesheet href="{% static 'transcriptions/css/resultsdisplay.css' %}" type="text/css"/>
+
+	<script>
+		$(document).ready(function () {
+			results.addHandlers();
+		})
+	</script>
+
+{% endblock %}
+
+{% block breadcrumbs %}
+	<div id="breadcrumbs">
+		<a href="/transcriptions/search/?{{ search_query }}">Back to Search</a>
+	</div>
+{% endblock %}
+
+{% block container %}
+		<br/>
+			<div id="page_nav">
+				{% if current_page == 1 %}
+					<button class="linkbutton" disabled="disabled" type="button"><<</button>
+					<button class="linkbutton" disabled="disabled" type="button"><</button>
+				{% else %}
+					<a href="{{ first_link }}">
+						<button class="linkbutton" type="button"><<</button>
+					</a>
+					<a href="{{ previous_link }}">
+						<button class="linkbutton" type="button"><</button>
+					</a>
+				{% endif %}
+				page
+				<div id="page_select_div">
+					<select id="page_select">
+						{% for i in total_pages|get_range %}
+							{% if current_page == i %}
+								<option selected="selected" value="{{ page_select_link }}&offset={{ i|get_offset:page_size }}">{{ i }}</option>
+							{% else %}
+								<option value="{{ page_select_link }}&offset={{ i|get_offset:page_size }}">{{ i }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</div>
+				of
+				{{total_pages}}
+				{% if current_page == total_pages %}
+					<button class="linkbutton" disabled="disabled" type="button">></button>
+					<button class="linkbutton" disabled="disabled" type="button">>></button>
+				{% else %}
+					<a href="{{ next_link }}">
+						<button class="linkbutton" type="button">></button>
+					</a>
+					<a href="{{ last_link }}">
+						<button class="linkbutton" type="button">>></button>
+					</a>
+				{% endif %}
+			</div>
+	<div id="container">
+		<table class="data_list" id="data_table">
+			<tbody>
+				<tr><th>Verse</th><th>Manuscript</th><th>Text</th></tr>
+					{% for entry in data %}
+						<tr class="{{ forloop.counter0|get_row_class }}">
+							<td>{{ entry.verse.context }}</td>
+							<td>{{ entry.verse.siglum }}{{ entry.hand_abbreviation }}</td>
+							<td>{{ entry.reading_text }}</td>
+						</tr>
+					{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "citations/edit_base.html" %}
+{% load static %}
+
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'citations/js/edit_citation.js' %}"></script>
+	<script type="text/javascript" src="{% static 'common/js/redips-drag.js' %}"></script>
+	<link rel=stylesheet href="{% static 'citations/css/citationforms.css' %}" type="text/css"/>
+{% endblock %}
+
+{% block form %}
+	<form id="citation_form" action="#">
+		{% csrf_token %}
+      	<input class="integer" type="hidden" id="id" name="id"/>
+      	<input class="datetime" type="hidden" id="created_time" name="created_time"/>
+				<input class="datetime" type="hidden" id="last_modified_time" name="last_modified_time"/>
+				<input class="integer" type="hidden" id="work_reference_sortable" name="work_reference_sortable"/>
+				<input class="integer" type="hidden" id="biblical_reference_sortable" name="biblical_reference_sortable"/>
+				<input class="string" type="hidden" id="biblical_reference" name="biblical_reference"/>
+      	<!-- Start of form-section source_details -->
+      	<div class="form_section" id="source_details">
+    		<div id="transcriber_details">
+    			<label for="created_by" class="top width_quarter">Transcribed by:
+    			<br/>
+    			<input id="created_by" name="created_by" type="text" readonly="readonly" class="string"/></label>
+      			<label for="created_time_display" class="top width_quarter">on:<br/><input id="created_time_display" type="text" readonly="readonly" size="8"/></label>
+      			<br/>
+       			<div id="modifier_details">
+           			<label for="last_modified_by" class="top width_quarter">Last modified by:<br/><input id="last_modified_by" name="last_modified_by" type="text" readonly="readonly" class="string"/></label>
+           			<label for="last_modified_time_display" class="top width_quarter">on:<br/><input id="last_modified_time_display" type="text" readonly="readonly" size="8"/></label>
+       			</div>
+    		</div>
+    		<div id="biblical_reference_div" >Biblical reference: <b>*</b>
+	    		<br/>
+	      		<select id="biblical_work" name="biblical_work" class="required integer"></select>
+	      		<input id="chapter" name="chapter" type="text" maxlength="2" size="2" class="required integer"/>
+	      		<span> : </span>
+	      		<input id="verse" name="verse" type="text" maxlength="3" size="3" class="required integer"/>
+	    	</div>
+    		<label for="language" class="top width_quarter">Language: <b>*</b>
+    			<select id="language" name="language">
+    				<option value="none">Select</option>
+    				<option value="lat">Latin</option>
+    				<option value="grc">Greek</option>
+    			</select>
+    		</label>
+    		<div class="verse_text"><span id="basetext_label"></span>&nbsp;<span id="basetext_text" class="verse_text_reminder"></span></div>
+      		<div id="work_references">
+        		<label for="author" class="top width_half">Author: <b>*</b>
+	        		<br/>
+	        		<select id="author" class="integer required"></select>
+        		</label>
+        		<label for="work" class="top width_half">Work: <b>*</b>
+        			<br/>
+        			<select id="work" name="work" class="integer required">
+        				<option value="none">Select</option>
+        			</select>
+        		</label>
+        		<label for="work_reference" class="top width_half">Work reference:
+        			<input type="text" size="7" id="work_reference" name="work_reference" class="string"></input>
+        		</label>
+        		<span id="clavis_check"></span>
+        		<br/>
+        		<label for="onlinecorpus" class="top width_half">Online corpus:
+        			<select id="onlinecorpus" name="onlinecorpus" class="string"></select>
+        		</label>
+        		<br/>
+        		<label for="edition" class="top width_half">Edition:
+        			<br/>
+        			<select id="edition" name="edition" class="integer">
+        				<option value="none">Select</option>
+        			</select>
+        		</label>
+        		<label id="page_reference_label" for="page_reference" class="top width_quarter">Page ref:
+        			<input id="page_reference" name="page_reference" type="text" size="10" class="string"/>
+        		</label>
+        		<label id="line_reference_label" for="line_reference" class="top width_quarter">Line ref:
+        			<input id="line_reference" name="line_reference" type="text" size="10" class="string"/>
+        		</label>
+        		<span id="edition_details"></span>
+      		</div>
+      		<div class="form_section" id="corrections_section" style="display:none">
+				<input type="hidden" name="corrections_required" id="corrections_required" class="boolean"/>
+				<label for="correction_notes" class="top highlighted">Corrections required:</label><br/>
+				<textarea class="string" id="correction_notes" name="correction_notes" cols="80" rows="2"></textarea>
+				<br/>
+				<input id="delete_corrections_required_data" type="button" value="All required corrections made"/>
+			</div>
+    	</div>
+    	<!-- End of form-section source_details -->
+
+    	<div class="form_section" id="search_details_div">
+        	<h2>Search details</h2><br/>
+        	<label class="text_area_label inline" for="search_string">Search string:</label>
+        		<textarea name="search_string" id="search_string" rows="1" cols="80" class="string"></textarea>
+    	</div>
+      	<div class="form_section" id="citation_details">
+       		<h2>Citation</h2><br/>
+       		<label class="text_area_label inline" for="citation_text">Citation text:</label>
+       		<textarea name="citation_text" id="citation_text" rows="6" cols="80" class="string"></textarea>
+       		<br/>
+      		<label for="citation_type" class="inline">Citation type:</label>
+      		<select id="citation_type" name="citation_type" class="string">
+      			<option value="CIT">CIT</option>
+      			<option value="ADAPT">ADAPT</option>
+      			<option value="ALL">ALL</option>
+      			<option value="REM">REM</option>
+      			<option value="LEMMA">LEMMA</option>
+      			<option value="CAPITULUM">CAPITULUM</option>
+      		</select>
+    		<label for="citation_reference_type" class="inline">Reference type:</label>
+   			<select id="citation_reference_type" name="citation_reference_type" class="string">
+   				<option value="">select</option>
+   				<option value="reference">Reference</option>
+   				<option value="possible_reference">Possible reference</option>
+   				<option value="no_reference">No reference</option>
+   				<option value="reference_not_found">Reference not found</option>
+   			</select>
+    	</div>
+    	<div class="form_section" id="ms_variants_div">
+    		<h2>Manuscript variants</h2>
+    		<br/>
+        	<div id="drag1">
+            	<table id="MS_variants"><tbody></tbody></table><!-- leave on one line or it breaks! -->
+        	</div>
+      		<img class="add_logo" height="20px" width="20px" title="Add another variant" src="{% static 'citations/images/add.png' %}" id="add_manuscript_variants"/>
+    		<br/>
+    		<div id="manuscript_info_div" style="display:none">
+            	<label for="manuscript_info" class="top width_full">Legacy Manuscript Info:
+            		<input class="string" type="text" id="manuscript_info" name="manuscript_info"/>
+            	</label>
+            	<img id="delete_manuscript_info" style="display:none" class="delete_logo" height="20px" width="20px"  title="Delete this field. Should be done only when the manuscript information is resolved and present in the manuscript variants section." src="{% static 'citations/images/delete.png' %}"/>
+        	</div>
+    	</div>
+    	<div class="form_section" id="biblical_catena_div">
+       		<h2>Biblical catena</h2>
+           	<div id="drag2">
+               	<table id="catena_table" class="added_data" style="display:none"><tbody></tbody></table><!-- leave on one line or it breaks! -->
+               	<br/>
+           	</div>
+           	<div id="biblical_catena" >Biblical reference:
+               	<select id="book_catena" class="string"></select>
+               	<input id="chapter_catena" type="text" maxlength="3" size="3" class="integer"/>
+               	<span> : </span>
+               	<input id="verse_catena" type="text" maxlength="3" size="3" class="integer"/>
+           	</div>
+           	<img class="add_logo" height="20px" width="20px" title="Add catena reference" src="{% static 'citations/images/add.png' %}" id="add_catena"/>
+       	</div>
+
+      	<!-- Start of form_section relationships -->
+      	<div class="form_section" id="dependencies_div">
+      		<h2>Dependencies</h2>
+      		<br/>
+       		<div id="dependencies_data_div">
+
+       		</div>
+       		<img class="add_logo" height="20px" width="20px" title="Add another dependency" src="{% static 'citations/images/add.png' %}" id="add_dependencies"/>
+      		<br/>
+      		<div id="dependencies_string_div" style="display:none">
+       			<label for="dependencies_string" class="top width_full">Legacy Dependency Details:
+       				<input class="string" type="text" id="dependencies_string" name="dependencies_string"/>
+       			</label>
+       			<img id="delete_dependencies_string" style="display:none" class="delete_logo" height="20px" width="20px"  title="Delete this field. Should be done only when the manuscript information is resolved and present in the dependencies section." src="{% static 'citations/images/delete.png' %}"/>
+      		</div>
+      	</div>
+      	<!-- End of form_section relationships -->
+       	<div class="form_section" id="parallels_div">
+            <h2>Biblical parallels</h2>
+            <table id="parallels_table" class="added_data" style="display:none"><tbody></tbody></table><!-- leave on one line or it breaks! -->
+            <br/>
+            <div id="biblical_parallel" >Biblical reference:
+                <select id="book_parallel" class="string"></select>
+                <input id="chapter_parallel" type="text" maxlength="3" size="3" class="integer"/>
+                <span> : </span>
+                <input id="verse_parallel" type="text" maxlength="3" size="3" class="integer"/>
+            </div>
+        	<img class="add_logo" height="20px" width="20px" title="Add reference" src="{% static 'citations/images/add.png' %}" id="add_parallel"/>
+        </div>
+        <div class="form_section" id="source_section" style="display:none">
+    		<h2>Sources</h2>
+    		<table style="display:none" id="sources_table" class="added_data"><tbody></tbody></table><!-- leave on one line or it breaks! -->
+    		<div id="new_source_div" style="display:none">
+	    		<select id="source_select">
+	    			<option value="">Select</option>
+	    			<option value="Biblindex">Biblindex</option>
+	    			<option value="Biblindex multiverse">Biblindex multiverse</option>
+	    			<option value="COMPAUL">COMPAUL</option>
+	    		</select>
+	    		<img class="add_logo" height="20px" width="20px" title="Add source" src="{% static 'citations/images/add.png' %}" id="add_source"/>
+    		</div>
+    	</div>
+
+      	<!-- Start of form_section comments -->
+      	<div class="form_section" id="comments_section">
+    		<label for="comments" class="top">Comments:</label><br/>
+    		<textarea class="string" id="comments" name="comments" cols="80" rows="4"></textarea>
+      	</div>
+      	<div class="form_section" id="status_details">
+    		<input type="hidden" name="status" id="status" class="string" value="live"/>
+    		<label class="top width_half">Status: <span id="status_value">Live</span></label><br/><br/>
+    		<input type="button" class="width_half" id="flag" value="Flag for attention"/>
+    		<input type="button" class="width_half" id="deprecate" value="Deprecate"/>
+    	</div>
+     	<label class="top width_full">Save comment:<input id="save_comment" class="string" type="text"/></label>
+     	<br/>
+      	<div id="submit_section">
+    		<input id="submit_same" type="button" value="Save and add same verse"/>
+    		<input id="submit_next" type="button" value="Save and add next verse"/>
+    		<br/>
+    		<input id="submit_continue" type="button" value="Save and continue editing"/>
+    		<input id="submit_home" type="button" value="Save and return to citation list"/>
+    		<br/>
+    		<input id="delete" class="delete_button" type="button" value="Delete citation"/>
+    		<input id="reset_form" class="delete_button" type="button" value="Reset form"/>
+    	</div>
+
+    </form>
+{% endblock %}

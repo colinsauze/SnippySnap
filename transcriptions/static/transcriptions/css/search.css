@@ -1,0 +1,30 @@
+#add_search_line {
+	margin-top: 10px;
+}
+
+#search_button {
+	margin-top: 20px;
+}
+
+.search_line {
+	margin-top: 10px;
+}
+
+.field_select {
+	width: 200px;
+	margin-right: 10px;
+}
+
+.relation_select {
+	width: 125px;
+	margin-right: 10px;
+}
+
+.search_text {
+	width: 250px;
+	margin-right: 10px;
+}
+
+.delete_logo {
+	vertical-align: middle;
+}

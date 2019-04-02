@@ -1,0 +1,44 @@
+
+#header_container{
+	width: 100%;
+}
+
+.column {
+	width: 48%;
+	float: left;
+}
+
+body.active {
+	cursor: default;
+}
+
+body.waiting {
+	cursor: wait;
+}
+
+#results_container{
+	padding-top: 20px;
+	display: none;
+	clear:both;
+}
+
+.results{
+ 	margin-top: 20px;
+ 	border: 3px inset gray;
+ 	padding: 10px;
+ 	background: white;
+}
+
+.file_details, .delete_logo{
+	padding-left: 5px;
+	width: 15px;
+	height: 15px;
+	vertical-align: middle;
+}
+.verse_comp {
+	margin: 10px 0 0 0;
+}
+
+#toggle_checked{
+	padding-left:10px;
+}

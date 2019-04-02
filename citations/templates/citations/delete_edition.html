@@ -1,0 +1,64 @@
+{% extends "citations/delete_base.html" %}
+{% load static %}
+{% load citation_filters %}
+
+
+
+{% block message %}
+	{% if privatedeps %}
+		<p id="private_dependency_warning">The {{ model }} has dependencies in private projects that you do not have permissions to delete.
+		Please contact ITSEE staff for advice.</p>
+		<p>All dependencies in main projects are shown below, those with the delete button can be deleted.</p>
+        <p>Please be very careful when deleting items, especially involving citations for which you do not have responsibility.
+        Check with other citation managers if necessary.</p>
+	{% else %}
+		<p>In order to delete this edition the references to it in the listed citations must also be deleted. The citations themselves will not be deleted but the reference to the edition will be removed.
+		</p><p>Please be very careful when deleting items involving citations for which you do not have responsibility.
+		Check with other citation managers if necessary.</p>
+	{% endif %}
+{% endblock %}
+
+{% block dependencies %}
+	<table id="dependency_table">
+	<tr>
+		<th>Edition</th>
+		<th>Citations referencing this edition</th>
+	</tr>
+	<tr>
+	   <td></td>
+	   {% if citations_count > 100 %}
+            <td>Total {{ citations_count }} (100 shown)</td>
+        {% else %}
+            <td>Total {{ citations_count }}</td>
+        {% endif %}
+	</tr>
+	<tr>
+		<td>
+			<ul id="edition_list">
+				<li>
+					{% if not privatedeps %}
+						<img class="delete_logo" height="15px" width="15px" title="Delete this item" src="{% static 'citations/images/delete.png' %}" id="delete_{{ model }}_{{ data.id }}"/>
+					{% else %}
+						<img height="15px" width="15px" src="{% static 'citations/images/blackdot.png' %}"/>
+					{% endif %}
+					<a href="/citations/{{ model }}/{{ data.id }}">{{ data }}</a>
+				</li>
+			</ul>
+		</td>
+	<td>
+	{% if citations|length > 0 %}
+		<ul id="citation_list">
+			{% for cit in citations %}
+				<li>
+					<img class="delete_edition_reference_logo" height="15px" width="15px" title="Delete edition reference in this citation" src="{% static 'citations/images/delete.png' %}" id="delete_citation_{{ cit.id }}"/>
+					<a href="/citations/citation/{{ cit.id }}">{{ cit }}</a>
+				</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+	</td>
+	</tr>
+	</table>
+
+
+{% endblock %}

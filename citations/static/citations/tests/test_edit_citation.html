@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>edit_citation tests</title>
+  <link rel="stylesheet" href="../../../../static/tests/qunit-2.1.1.css">
+</head>
+<body>
+	<script>testing = true</script>
+  	<script src="../../../../static/js/jquery.min.js"></script>
+  	<script src="../../../../static/tests/qunit-2.1.1.js"></script>
+ 	<script src="../../../../static/tests/sinon-1.17.7.js"></script>
+  	<script src="../../../../static/js/forms.js"></script>
+  	<script src="../../../../static/js/utils.js"></script>
+  	<script src="../../../../static/js/redips-drag.js"></script>
+  	<script src="../js/edit.js"></script>
+  	<script src="../js/edit_citation.js"></script>
+
+  	
+  	<!-- set up the environment -->  	
+  	<script>		
+	  	var server, sandbox, cits, project;
+	  	QUnit.testStart(function () {
+	  	  	
+		  	  project = {
+						'edition_transcribers': ['testuser1'], 
+						'online_transcribers': ['testuser2'],
+						'language': 'grc',
+						'form_settings': {'testmodel': {'edition_transcribers': ['sectionA']}},
+						'submit_settings': {'testmodel': {'edition_transcribers': ['submit_continue', 'submit_same']}},
+						'preselects': {'testmodel' : {'language': 'lat', 'author': 'testAuthor'}}
+					};
+				cits = {};
+				cits.user = {};
+				cits.user.id = 'testuser1';
+				cits.user.idString = 'tu1';
+				cits.user.group_name = 'citation_managers';
+				cits.project = project; 
+				server = sinon.fakeServer.create(); 
+		  	  	sandbox = sinon.sandbox.create();
+	  	});
+	  	
+	  	QUnit.testDone(function () {
+	  		server.restore(); 
+	  		sandbox.restore();
+	  		cits = null;
+	  	});
+
+		QUnit.test("test populateTranscriber", function (assert) {
+			var date;
+ 			edit_citation.populateTranscriber();
+ 			assert.equal(document.getElementById('created_by').value, 'tu1');
+ 			//we can't really test that the time itself is correct but we can check that the time
+ 			//is correctly converted for display.
+ 			assert.notEqual(document.getElementById('created_time').value, 'wrong');
+ 			date = new Date(parseInt(document.getElementById('created_time').value));
+ 			assert.equal(document.getElementById('created_time_display').value, date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear());
+ 		});
+	  	
+	  	QUnit.test("test populateBook getItems1 spy", function (assert) {
+	  		var get_items, criteria;	
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');		
+			edit_citation.populateBook();
+			criteria = {'limit': 1000000, 
+					'_sort':'book_number', 					
+					}
+			assert.ok(get_items.calledWith('transcriptions', 'work', criteria, 'GET'));	
+	  	});
+	  	
+	  	QUnit.test("test populateBook getItems2 spy", function (assert) {
+	  		var get_items, criteria;	
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');		
+			edit_citation.populateBook({'corpus': 'NT'});
+			criteria = {'limit': 1000000, 
+					'_sort':'book_number',
+					'corpus': 'NT'
+					}
+			assert.ok(get_items.calledWith('transcriptions', 'work', criteria, 'GET'));	
+	  	});
+	  	
+	  	QUnit.test("test populateBook populateSelect1 spy", function (assert) {
+			var populate_select, criteria, response_data;
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			edit_citation.populateBook()
+  			response_data = {"results": [{"id": 'NT_B01', "name": 'Matthew'}, 
+  			                                 {"id": 'NT_B02', "name": 'Mark'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('biblical_work').value, 'none');
+		});
+	  	
+	  	QUnit.test("test populateBook populateSelect2 spy", function (assert) {
+			var populate_select, criteria, response_data;
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			cits.project.book = 'NT_B01';
+			edit_citation.populateBook({'select': 'NT_B02'});
+  			response_data = {"results": [{"id": 'NT_B01', "name": 'Matthew'}, 
+  			                                 {"id": 'NT_B02', "name": 'Mark'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('biblical_work').value, 'NT_B02');
+		});
+	  	
+	  	QUnit.test("test populateBook populateSelect3 spy", function (assert) {
+			var populate_select, criteria, response_data;
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			cits.project.book = 'NT_B01';
+			edit_citation.populateBook();
+  			response_data = {"results": [{"id": 'NT_B01', "name": 'Matthew'}, 
+  			                                 {"id": 'NT_B02', "name": 'Mark'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('biblical_work').value, 'NT_B01');
+		});
+	  	
+	  	QUnit.test("test stripTags", function (assert) {
+	  		var string;
+	  		string = edit_citation.stripTags('<test><w>My</w><w>test</w><w>string</w></test>');
+	  		assert.equal(string, ' My test string');
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText incomplete_input", function (assert) {
+	  		var get_items;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText({'book_number': 'NT_B06'});
+	  		assert.notOk(get_items.calledOnce);
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText json_input", function (assert) {
+	  		var get_items, criteria;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText({'biblical_work': 'NT_B05', 'chapter': 1, 'verse': 1, 'language': 'grc'});
+	  		criteria = {'siglum': 'TR', 
+					'transcription__corpus': 'NT', 
+					'work__id': 'NT_B05', 
+					'chapter_number': 1, 
+					'verse_number': 1, 
+					'language': 'grc',
+					'_fields': 'tei,id,identifier'};
+	  		assert.ok(get_items.calledOnce);
+	  		assert.ok(get_items.calledWith('transcriptions', 'verse', criteria, 'GET'));
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText form_input", function (assert) {
+	  		var get_items, criteria;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText();
+	  		criteria = {'siglum': 'TR', 
+					'transcription__corpus': 'NT', 
+					'work__id': 'NT_B06', 
+					'chapter_number': '2', 
+					'verse_number': '2', 
+					'language': 'grc',
+					'_fields': 'tei,id,identifier'};
+	  		assert.ok(get_items.calledOnce);
+	  		assert.ok(get_items.calledWith('transcriptions', 'verse', criteria, 'GET'));
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText siglum_test", function (assert) {
+	  		var get_items, criteria;
+	  		cits.project.base_text_siglum = 'BTS';
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText();
+	  		criteria = {'siglum': 'BTS', 
+					'transcription__corpus': 'NT', 
+					'work__id': 'NT_B06', 
+					'chapter_number': '2', 
+					'verse_number': '2', 
+					'language': 'grc',
+					'_fields': 'tei,id,identifier'};
+	  		assert.ok(get_items.calledOnce);
+	  		assert.ok(get_items.calledWith('transcriptions', 'verse', criteria, 'GET'));
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText callback1", function (assert) {
+	  		var get_items, response_data;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText();
+
+  			response_data = {"count": 1, "results": [{"tei": 'My verse text'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal(document.getElementById('basetext_text').innerHTML, 'My verse text');
+  			assert.equal(document.getElementById('basetext_label').innerHTML, 'TR text:');
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText callback2", function (assert) {
+	  		var get_items, response_data;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText();
+
+  			response_data = {"count": 0, "results": []};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal(document.getElementById('basetext_text').innerHTML, '');
+  			assert.equal(document.getElementById('basetext_label').innerHTML, '');
+	  	});
+	  	
+	  	QUnit.test("test getBiblicalText callback3", function (assert) {
+	  		var get_items, response_data;
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+	  		edit_citation.getBiblicalText();
+
+  			response_data = {"count": 2, "results": [{"tei": 'My verse text'}, {"tei": 'My verse text'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal(document.getElementById('basetext_text').innerHTML, '');
+  			assert.equal(document.getElementById('basetext_label').innerHTML, '');
+	  	});
+	  	
+	  	QUnit.test("test addCatena", function (assert) {
+	  		//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+  			staticUrl = 'test/url';
+  			edit_citation.addCatena();
+  			assert.notEqual(document.getElementById('biblical_catena_0'), null);
+  			assert.notEqual(document.getElementById('delete_catena_0'), null);
+  			assert.equal(document.getElementById('biblical_catena_0').innerHTML, 'John 2:2');
+  			edit_citation.addCatena('John 1:1');
+  			assert.notEqual(document.getElementById('biblical_catena_1'), null);
+  			assert.notEqual(document.getElementById('delete_catena_1'), null);
+  			assert.equal(document.getElementById('biblical_catena_1').innerHTML, 'John 1:1');
+  			edit_citation.addCatena('John 1:3');
+  			assert.notEqual(document.getElementById('biblical_catena_2'), null);
+  			assert.notEqual(document.getElementById('delete_catena_2'), null);
+  			assert.equal(document.getElementById('biblical_catena_2').innerHTML, 'John 1:3');
+	  	});
+	  	
+	  	QUnit.test("test addParallel", function (assert) {
+	  		//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+  			staticUrl = 'test/url';
+  			edit_citation.addParallel();
+  			assert.notEqual(document.getElementById('biblical_parallels_0'), null);
+  			assert.notEqual(document.getElementById('delete_parallel_0'), null);
+  			assert.equal(document.getElementById('biblical_parallels_0').innerHTML, 'John 4:2');
+  			edit_citation.addParallel('John 1:1');
+  			assert.notEqual(document.getElementById('biblical_parallels_1'), null);
+  			assert.notEqual(document.getElementById('delete_parallel_1'), null);
+  			assert.equal(document.getElementById('biblical_parallels_1').innerHTML, 'John 1:1');
+  			edit_citation.addParallel('John 1:3');
+  			assert.notEqual(document.getElementById('biblical_parallels_2'), null);
+  			assert.notEqual(document.getElementById('delete_parallel_2'), null);
+  			assert.equal(document.getElementById('biblical_parallels_2').innerHTML, 'John 1:3');
+	  	});
+	  	
+	  	QUnit.test("test addSource", function (assert) {
+	  		//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+	  		staticUrl = 'test/url';
+  			edit_citation.addSource();
+  			assert.notEqual(document.getElementById('sources_0'), null);
+  			assert.notEqual(document.getElementById('delete_source_0'), null);
+  			assert.equal(document.getElementById('sources_0').innerHTML, 'Biblindex');
+  			edit_citation.addSource('COMPAUL');
+  			assert.notEqual(document.getElementById('sources_1'), null);
+  			assert.notEqual(document.getElementById('delete_source_1'), null);
+  			assert.equal(document.getElementById('sources_1').innerHTML, 'COMPAUL');
+  			edit_citation.addSource('Biblindex multiverse');
+  			assert.notEqual(document.getElementById('sources_2'), null);
+  			assert.notEqual(document.getElementById('delete_source_2'), null);
+  			assert.equal(document.getElementById('sources_2').innerHTML, 'Biblindex multiverse');
+  			//now in the same function because of the variable increment problem
+  			//make sure citation transcribers don't get delete buttons
+  			cits.user.group_name = 'citation_editors';
+  			edit_citation.addSource('Biblindex');
+  			assert.notEqual(document.getElementById('sources_3'), null);
+  			assert.equal(document.getElementById('delete_source_3'), null);
+  			assert.equal(document.getElementById('sources_3').innerHTML, 'Biblindex');
+  			edit_citation.addSource('COMPAUL');
+  			assert.notEqual(document.getElementById('sources_4'), null);
+  			assert.equal(document.getElementById('delete_source_4'), null);
+  			assert.equal(document.getElementById('sources_4').innerHTML, 'COMPAUL');
+  			edit_citation.addSource('Biblindex multiverse');
+  			assert.notEqual(document.getElementById('sources_5'), null);
+  			assert.equal(document.getElementById('delete_source_5'), null);
+  			assert.equal(document.getElementById('sources_5').innerHTML, 'Biblindex multiverse');
+	  	});
+	  	
+	  	QUnit.test("test addDependency", function (assert) {
+	  		//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+  			//the two fields without database calls are populated by the normal
+  			//form population and the others are populated by 
+  			//edit_citations.populateDependencySelect which we test in this file
+  			//so we will not test populating data here just creation of form fields
+  			staticUrl = 'test/url';
+  			edit_citation.addDependency();
+  			assert.notEqual(document.getElementById('dependencies_0_relation_type'), null);
+  			assert.notEqual(document.getElementById('dependencies_0_author'), null);
+  			assert.notEqual(document.getElementById('dependencies_0_work'), null);
+  			assert.notEqual(document.getElementById('dependencies_0_work_reference'), null);
+  			assert.notEqual(document.getElementById('delete_dependency_0'), null);
+  			edit_citation.addDependency();
+  			assert.notEqual(document.getElementById('dependencies_1_relation_type'), null);
+  			assert.notEqual(document.getElementById('dependencies_1_author'), null);
+  			assert.notEqual(document.getElementById('dependencies_1_work'), null);
+  			assert.notEqual(document.getElementById('dependencies_1_work_reference'), null);
+  			assert.notEqual(document.getElementById('delete_dependency_1'), null); 	
+  		});
+	  	
+	  	QUnit.test("test populateDependencyAuthor populateSelect", function (assert) {
+	  		//uses 6 as the index as this is clear of the adding tests and 
+	  		//it is endoded in the test html this way
+	  		var data, response_data;
+  			data = {"work":1990,
+  					"author":295,
+  					"relation_type":"is_quotation_of",
+  					"work_reference":"pr",
+  					"id":1,
+  					"citation":120};
+  			edit_citation.populateDependencyAuthor(6, data);
+  			response_data = {"results": [{"id": 295, "abbreviation": 'TA1', "full_name": 'Test Author 1'}, {"id": 29, "abbreviation": 'TA2', "full_name": 'Test Author 2'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal(document.getElementById('dependencies_6_author').value, '295');
+
+	  	});
+	  	
+ 	  	QUnit.test("test populateDependencyWork populateSelect", function (assert) {
+	  		//uses 6 as the index as this is clear of the adding tests and 
+	  		//it is endoded in the test html this way
+	  		var data, response_data;
+  			data = {"work":1990,
+  					"author":295,
+  					"relation_type":"is_quotation_of",
+  					"work_reference":"pr",
+  					"id":1,
+  					"citation":120};
+  			edit_citation.populateDependencyWork(6, data);
+  			response_data = {"results": [{"id": 1990, "abbreviation": 'TW1', "title": 'Test Work 1'}, {"id": 29, "abbreviation": 'TW2', "full_name": 'Test Work 2'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal(document.getElementById('dependencies_6_work').value, '1990');	
+ 	  	});
+	  	
+ 	  	QUnit.test("test getLanguage1", function (assert) {
+ 	  		var lang;
+ 	  		lang = edit_citation.getLanguage();
+ 	  		assert.equal(lang, 'grc');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test getLanguage2", function (assert) {
+ 	  		var lang;
+ 	  		cits.project.language = 'lat'
+ 	  		lang = edit_citation.getLanguage();
+ 	  		assert.equal(lang, 'lat');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test addManuscriptVariants", function (assert) {
+ 	  		staticUrl = 'test/url';
+ 	  		cits.project.language = 'lat'
+ 	  		edit_citation.addManuscriptVariants();
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_0_headword'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_0_variant'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_0_support'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_0_vulgate'), null);
+ 	  		assert.notEqual(document.getElementById('delete_manuscript_variants_0'), null);
+ 	  		assert.equal(document.getElementById('manuscript_variants_0_maj'), null);
+ 	  		edit_citation.addManuscriptVariants();
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_1_headword'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_1_variant'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_1_support'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_1_vulgate'), null);
+ 	  		assert.notEqual(document.getElementById('delete_manuscript_variants_1'), null);
+ 	  		assert.equal(document.getElementById('manuscript_variants_1_maj'), null);
+ 	  		//switch language and test that ouptut
+ 	  		cits.project.language = 'grc'
+ 	  		edit_citation.addManuscriptVariants();
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_2_headword'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_2_variant'), null);
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_2_support'), null);	  		
+ 	  		assert.notEqual(document.getElementById('manuscript_variants_2_maj'), null);
+ 	  		assert.notEqual(document.getElementById('delete_manuscript_variants_2'), null);
+ 	  		assert.equal(document.getElementById('manuscript_variants_2_vulgate'), null);
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test getVerseReference1", function (assert) {
+ 	  		var ref, expected;
+ 	  		ref = edit_citation.getVerseReference();
+ 	  		expected = {'biblical_work': 'NT_B06', 'chapter': 2, 'verse': 2};
+ 	  		assert.equal(JSON.stringify(ref), JSON.stringify(expected));
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test getVerseReference2", function (assert) {
+ 	  		var ref, expected;
+ 	  		//change the html
+ 	  		document.getElementById('verse').value = '';
+ 	  		document.getElementById('chapter').value = '';
+ 	  		ref = edit_citation.getVerseReference();
+ 	  		expected = {'biblical_work': 'NT_B06', 'chapter': '', 'verse': ''};
+ 	  		assert.equal(JSON.stringify(ref), JSON.stringify(expected));
+ 	  	});
+ 	  	
+ 	  	//getNextVerse is not tested here as it is really complex to test because of internal calls
+ 	  	//it will be tested in functional tests
+ 	  	
+ 	  	QUnit.test("test filterWorks getItems spy", function (assert) {
+ 	  		var get_items, criteria;
+ 	  		criteria = {'limit': 1000000, 
+ 	  					'author__id': '95', 
+ 	  					'_sort': 'abbreviation', 
+ 	  					'_fields': 'abbreviation,title,id'}
+	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+ 	  		edit_citation.filterWorks('seed_author', 'target_work');
+ 	  		assert.ok(get_items.calledOnce);
+	  		assert.ok(get_items.calledWith('citations', 'work', criteria, 'GET'));
+	  		
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test filterWorks populateSelect", function (assert) {
+ 	  		var response_data;
+ 	  		edit_citation.filterWorks('seed_author', 'target_work');
+ 	  		response_data = {"results": [{"id": 1990, "abbreviation": 'TW1', "title": 'Test Work 1'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));	
+  			assert.equal($('#target_work option').length, 2);
+	  		
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test displayClavis getItem spy", function (assert){
+ 	  		var get_item, response_data;
+ 	  		get_item = sandbox.spy(utils, 'getItemFromDatabase');
+ 	  		edit_citation.displayClavis();
+ 	  		assert.ok(get_item.calledWith('citations'), 'work', '1');
+ 	  		response_data = {"results": [{'id': 1, 'clavis': '1234'}]};
+ 	  		server.requests[0].respond(200, 
+						{"Content-Type": "application/json"}, 
+						JSON.stringify(response_data));	
+ 	  		assert.equal(document.getElementById('clavis_check').innerHTML, 'Clavis: 1234');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test displayClavis1", function (assert){
+ 	  		var response_data;
+ 	  		edit_citation.displayClavis();
+ 	  		response_data = {"results": [{'id': 1, 'clavis': '1234'}]};
+ 	  		server.requests[0].respond(400, 
+						{"Content-Type": "application/json"});	
+ 	  		assert.equal(document.getElementById('clavis_check').innerHTML, '');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test displayClavis2", function (assert){
+ 	  		var response_data;
+ 	  		edit_citation.displayClavis();
+ 	  		response_data = {"results": [{'id': 1}]};
+ 	  		server.requests[0].respond(200, 
+						{"Content-Type": "application/json"},
+						JSON.stringify(response_data));	
+ 	  		assert.equal(document.getElementById('clavis_check').innerHTML, 'No clavis');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test displayClavis3", function (assert){
+ 	  		document.getElementById('work').value = 'none';
+ 	  		edit_citation.displayClavis(); 	  		
+ 	  		assert.equal(document.getElementById('clavis_check').innerHTML, '');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test doShowEditionDetails", function (assert) {
+ 	  		edit_citation.doShowEditionDetails({"id":622, 
+ 	  									"identifier":"BACH_fi_edition_1",
+ 	  									"editor":"Madoz",
+ 	  									"year":1940,
+ 	  									"place":"London",
+ 	  									"volume":"1",
+ 	  									"independent_title":"Revista Española de Teología",
+ 	  									"superseded":null,
+ 	  									"page_information":"463-474",
+										"comments":"Previous Beuron eds. used PL 20, 1019-1036",
+										"work":772,
+										"series":'PL'});
+ 	  		assert.equal(document.getElementById('edition_details').innerHTML, 'Madoz (1940) <i>Revista Española de Teología.</i> PL 1.');
+
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test showEditionDetails1", function (assert) {
+ 	  		edit_citation.showEditionDetails('none');
+ 	  		assert.equal(document.getElementById('edition_details').innerHTML, '');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test showEditionDetails2", function (assert) {
+ 	  		//check series=null works correctly
+ 	  		var response_data, show_edition;
+ 	  		show_edition = sandbox.spy(edit_citation, 'showEditionDetails');
+ 	  		edit_citation.showEditionDetails();
+ 	  		response_data = {"results":[{"id":622, 
+ 	  									"identifier":"BACH_fi_edition_1",
+ 	  									"editor":"Madoz",
+ 	  									"year":1940,
+ 	  									"place":"London",
+ 	  									"volume":"1",
+ 	  									"independent_title":"Revista Española de Teología",
+ 	  									"superseded":null,
+ 	  									"page_information":"463-474",
+										"work":772,
+										"series":null}]}
+ 	  		server.requests[0].respond(200, 
+					{"Content-Type": "application/json"},
+					JSON.stringify(response_data));
+ 	  		assert.ok(show_edition.calledOnce)
+ 	  		assert.equal(document.getElementById('edition_details').innerHTML, 'Madoz (1940) <i>Revista Española de Teología.</i> 1.');
+
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test showEditionDetails3", function (assert) {
+ 	  		//check series abbreviation is used
+ 	  		var response_data, show_edition;
+ 	  		show_edition = sandbox.spy(edit_citation, 'showEditionDetails');
+ 	  		edit_citation.showEditionDetails();
+ 	  		response_data = {"results":[{"id":622, 
+ 	  									"identifier":"BACH_fi_edition_1",
+ 	  									"editor":"Madoz",
+ 	  									"year":1940,
+ 	  									"place":"London",
+ 	  									"volume":"1",
+ 	  									"independent_title":"Revista Española de Teología",
+ 	  									"superseded":null,
+ 	  									"page_information":"463-474",
+										"work":772,
+										"series":'PL'}]}
+ 	  		server.requests[0].respond(200, 
+					{"Content-Type": "application/json"},
+					JSON.stringify(response_data));
+ 	  		assert.ok(show_edition.calledOnce)
+ 	  		assert.equal(document.getElementById('edition_details').innerHTML, 'Madoz (1940) <i>Revista Española de Teología.</i> PL 1.');
+ 	  	});
+ 	  	
+ 	  	QUnit.test("test populateEditionSelect1", function(assert) {
+ 	  		//test with no citation data
+ 	  		var get_items, criteria;
+ 	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+ 	  		criteria = {'limit': 1000000, 
+ 	  					'work__language': cits.project.language, 
+ 	  					'_sort': 'id'};
+ 	  		edit_citation.populateEditionSelect();
+ 	  		assert.ok(get_items.calledWith('citations', 'edition', criteria));
+ 	  	});
+ 	  	
+		QUnit.test("test populateEditionSelect2", function(assert) {
+			//test with citation data author and word
+			var get_items, criteria, citation_json;
+ 	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+ 	  		cits.project.author_ids = [4];
+ 	  		criteria = {'limit': 1000000, 
+ 	  					'work__language': cits.project.language, 
+ 	  					'_sort': 'id',
+ 	  					'work__id': 1,
+ 	  					'author__id': 2
+ 	  					};
+ 	  		citation_json = {'work': 1, 'author': 2};
+ 	  		edit_citation.populateEditionSelect(citation_json);
+ 	  		assert.ok(get_items.calledWith('citations', 'edition', criteria));
+ 	  	});
+		
+		QUnit.test("test populateEditionSelect3", function(assert) {
+			//check project settings are used of no author supplied and only one project author
+			var get_items, show_edition, criteria, citation_json;
+ 	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+ 	  		cits.project.author_ids = [4];
+ 	  		criteria = {'limit': 1000000, 
+ 	  					'work__language': cits.project.language, 
+ 	  					'_sort': 'id',
+ 	  					'work__id': 1,
+ 	  					'author__id': 4
+ 	  					};
+ 	  		citation_json = {'work': 1};
+ 	  		edit_citation.populateEditionSelect(citation_json);
+ 	  		assert.ok(get_items.calledWith('citations', 'edition', criteria));
+ 	  	});
+		
+		QUnit.test("test populateEditionSelect4", function(assert) {
+			//check project authors are not used if there is more than one
+			var get_items, show_edition, criteria, citation_json;
+ 	  		get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+ 	  		cits.project.author_ids = [4, 5, 6];
+ 	  		criteria = {'limit': 1000000, 
+ 	  					'work__language': cits.project.language, 
+ 	  					'_sort': 'id',
+ 	  					'work__id': 1
+ 	  					};
+ 	  		citation_json = {'work': 1};
+ 	  		edit_citation.populateEditionSelect(citation_json);
+ 	  		assert.ok(get_items.calledWith('citations', 'edition', criteria));
+ 	  	});
+	
+		//NB it was not possible to test that showEditionDetails was called by populateEditionSelect
+		//when an edition was supplied in the citation data as the spy needs the name space to
+		//find it but in the code it is called without the namespace (as it is private). We will
+		//instead have to test this in functional tests
+		
+		QUnit.test("test populateEditionSelect callback1", function(assert) {
+			//check callback works with no selected value
+			var citation_json, response_data;
+ 	  		citation_json = {'work': 1, 'author': 2};
+ 	  		edit_citation.populateEditionSelect(citation_json);
+ 	  		response_data = {"results": [{'id': 1, 'editor': 'Migne', 'series': 'PG', 'year': null},
+ 	  		                          	{'id': 2, 'editor': '', 'series': 'PG', 'year': 1990}
+ 	  		                             ]};
+ 	  		server.requests[0].respond(200, 
+					{"Content-Type": "application/json"},
+					JSON.stringify(response_data));
+ 	  		assert.equal($('#edition option').length, 3);
+ 	  		assert.equal(document.getElementById('edition').value, 'none');
+ 	  		assert.equal($('#edition option')[0].text, 'select');
+ 	  		assert.equal($('#edition option')[1].text, 'Migne, PG');
+ 	  		assert.equal($('#edition option')[2].text, 'PG, 1990');
+ 	  	});
+		
+		QUnit.test("test populateEditionSelect callback2", function(assert) {
+			//check callback works with selected value
+			var show_edition, citation_json, response_data;
+			show_edition = sandbox.spy(edit_citation, 'showEditionDetails');
+ 	  		citation_json = {'work': 1, 'author': 2, 'edition': 2};
+ 	  		edit_citation.populateEditionSelect(citation_json);
+ 	  		response_data = {"results": [{'id': 1, 'editor': 'Migne', 'series': 'PG', 'year': null},
+ 	  		                          	{'id': 2, 'editor': '', 'series': 'PG', 'year': 1990}
+ 	  		                             ]};
+ 	  		server.requests[0].respond(200, 
+					{"Content-Type": "application/json"},
+					JSON.stringify(response_data));
+ 	  		assert.equal($('#edition option').length, 3);
+ 	  		assert.equal(document.getElementById('edition').value, '2');
+ 	  		
+ 	  	});
+		
+		QUnit.test("test createBiblicalReference", function (assert) {
+			var json, bibref;
+			json = {'biblical_work': 'NT_B06', 
+					'chapter': 2, 
+					'verse': 2};
+			bibref = edit_citation.createBiblicalReference(json);
+			assert.equal(bibref, 'B06K02V02');
+		});
+		
+		
+	  	/* public method tests */ 	
+	  	QUnit.test("test customSerialiseForm1", function (assert) {
+	  		var json;	
+	  		//test with just basic data
+	  		json = edit_citation.customSerialiseForm('test_form');
+	  		assert.equal(JSON.stringify(json), JSON.stringify({'biblical_work': 'NT_B06', 
+	  															'chapter': 2, 
+	  															'verse': 2, 
+	  															'language': 'grc',
+	  															'biblical_reference': 'B06K02V02',
+	  															'biblical_catena': null,
+	  															'biblical_parallels': null,
+	  															'sources': null}));
+	  	});
+
+	  	QUnit.test("test customSerialiseForm2", function (assert) {
+	  		var json;
+	  		//test with the parallel and catena data in test form 2
+	  		json = edit_citation.customSerialiseForm('test_form_2');
+	  		assert.equal(JSON.stringify(json), JSON.stringify({'biblical_work': 'NT_B06', 
+	  															'chapter': 2, 
+	  															"verse": 2, 
+	  															'language': 'grc',
+	  															'biblical_reference': 'B06K02V02',
+	  															'biblical_catena': ['Rm 1:1', 'Ga 2:2'],
+	  															'biblical_parallels': ['Jn 3:2', 'Mk 1:3'],
+	  															'sources':['Biblindex muliverse', 'COMPAUL']}));
+	  	});
+
+	  	</script> 
+
+	  	<script>testing = false</script>
+	  	<div id="qunit"></div>
+	 	<div id="qunit-fixture">
+	 	
+	 		<input type="text" name="created_by" id="created_by"/>
+	 		<input type="text" name="created_created_time_display" id="created_time_display"/>
+	 		<input type="hidden" name="created_time" id="created_time" value="wrong"/>
+ 			<form id="test_form">
+ 				<select name="biblical_work"><option selected="selected" value="NT_B06">Romans</option></select>
+ 				<input name="chapter" type="text" class="integer" value="2"/>
+ 				<input name="verse" type="text" class="integer" value="2"/>
+ 				<input name="language" type="text" value="grc"/>
+ 			</form>
+ 			<form id="test_form_2">
+ 				<select name="biblical_work" id="biblical_work"><option selected="selected" value="NT_B06">Romans</option></select>
+ 				<input name="chapter" id="chapter" type="text" class="integer" value="2"/>
+ 				<input name="verse" id="verse" type="text" class="integer" value="2"/>
+ 				<input name="language" id="language" type="text" value="grc"/>
+ 				<!-- these have to be in the form to test the customSerialise function -->
+ 				<div id="test_catena">		
+	 				<div id="drag2">
+		 				<select id="book_catena"><option value="John" selected="selected">John</option></select>
+		 				<input type="text" id="chapter_catena" value="2"/>	
+		 				<input type="text" id="verse_catena" value="2"/>	
+		 				<table id="catena_table">
+		 					<tbody>
+		 						<tr><td/><td>Rm 1:1</td></tr>
+		 						<tr><td/><td>Ga 2:2</td></tr>
+		 					</tbody>
+		 				</table>
+		 			</div>
+	 			</div>
+	 			<div id="test_biblical_parallel" >
+	                <select id="book_parallel"><option value="John" selected="selected">John</option></select>
+	                <input id="chapter_parallel" type="text" value="4"/>
+	                <input id="verse_parallel" type="text" value="2"/>
+	                <table id="parallels_table">
+	                	<tbody>
+	                		<tbody>
+		 						<tr><td>Jn 3:2</td></tr>
+		 						<tr><td>Mk 1:3</td></tr>
+		 					</tbody>
+	                	</tbody>
+	                </table>
+	            </div>
+	            <div id="test_sources" >
+	                <select id="source_select"><option value="Biblindex" selected="selected">Biblindex</option></select>
+	                <table id="sources_table">
+	                	<tbody>
+	                		<tbody>
+		 						<tr><td>Biblindex muliverse</td></tr>
+		 						<tr><td>COMPAUL</td></tr>
+		 					</tbody>
+	                	</tbody>
+	                </table>
+	            </div>
+ 			</form>
+ 			<div id="bastext_display_test">
+ 				<span id="basetext_label"></span>
+ 				<span id="basetext_text"></span>
+ 			</div>			
+ 			
+            <div id="dependencies_data_div">
+            
+       		</div>
+       		<div id="test_populate_author_and_work">
+       			<select id="dependencies_6_author"></select>
+       			<select id="dependencies_6_work"></select>
+       		</div>
+       		<div id="test_filter_works">
+       			<select id="seed_author"><option selected="selected" value="95">Test author 1</option></select>
+       			<select id="target_work">
+       				<option value="100">Test work 1</option>
+       				<option value="101">Test work 2</option>
+       				<option value="102">Test work 3</option>
+       			</select>
+       		</div>
+       		
+       		<div id="test_add_manuscript_variants">
+       			<div id="drag1">
+       				<table id="MS_variants"><tbody></tbody></table>
+       			</div>
+       		</div>
+       		
+       		<div id="test_display_clavis">
+       			<!-- in reality this would be a select but a text box is good enough for testing -->
+       			<input type="text" id="work" value="1">
+       			<span id="clavis_check">Test</span>
+       		</div>
+       		
+       		<div id="test_show_edition_details">
+       			<select id="edition"><option selected="selected" value="1">Test edition 1</option></select>
+       			<span id="edition_details">Test</span>
+       		</div>
+		</div>  
+	</body>
+</html>	  	

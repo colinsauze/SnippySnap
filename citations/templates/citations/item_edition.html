@@ -1,0 +1,24 @@
+{% extends "citations/item_base.html" %}
+
+{% block pre_standard_fields %}
+	<tr>
+		<th>
+			Author
+		</th>
+		<td>
+			<a href="/citations/author/{{ data.work.value.author.id }}">{{ data.work.value.author }}</a>
+		</td>
+	</tr>
+{% endblock %}
+
+
+{% block relations %}
+	<tr>
+		<th>Citations</th>
+		<td>
+			{% for citation in citations %}
+				<a href="/citations/citation/{{ citation.id }}">{{ citation }}</a><br/>
+			{% endfor %}
+		</td>
+	</tr>
+{% endblock %}

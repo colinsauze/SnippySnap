@@ -1,0 +1,51 @@
+{% extends "citations/base.html" %}
+{% load static %}
+{% load citation_filters %}
+
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'common/js/utils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'api/js/api.js' %}"></script>
+	<script type="text/javascript" src="{% static 'citations/js/cits.js' %}"></script>
+	<script type="text/javascript" src="{% static 'citations/js/submit.js' %}"></script>
+	<link rel=stylesheet href="{% static 'citations/css/relationsdisplay.css' %}" type="text/css"/>
+	<script>
+		$(document).ready(function () {
+			utils.setupAjax();
+			cits.addDeleteEventHandlers('{{ model_label }}');
+		})
+	</script>
+{% endblock %}
+
+{% block breadcrumbs %}
+	<div id="breadcrumbs">
+		<a href="/citations/">Citations Home</a>
+		>
+		<a href="/citations/{{ model_label }}">{{ breadcrumb_model }} List</a>
+	</div>
+{% endblock %}
+
+{% block container %}
+<div id="container">
+	{% block message %}
+	<p>In order to delete this {{ model_label }} all of the items listed below must either be deleted or modified due to dependencies.
+	Please be very careful when deleting items, especially involving citations for which you do not have responsibility.
+	Check with other citation managers if necessary.</p>
+
+	<p>In the case of 'Dependencies within Citations' the citation itself will not be deleted just the dependency that refers to this {{ model }}.</p>
+
+	<p>All items should be deleted from each column working from right to left before the {{ model_label }} can be deleted.</p>
+	{% endblock %}
+	<br/>
+
+
+
+	{% block dependencies %}
+
+	{% endblock %}
+</div>
+{% endblock %}
+{% block footer %}
+<div id="footer"><input id="cancel_delete" type="button" value="Cancel and return to {{ model_label }} list"/></div>
+{% endblock %}

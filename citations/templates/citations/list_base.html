@@ -1,0 +1,200 @@
+{% extends "citations/base.html" %}
+{% load static %}
+{% load citation_filters %}
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'citations/js/display.js' %}"></script>
+	<link rel=stylesheet href="{% static 'citations/css/datadisplay.css' %}" type="text/css"/>
+	<script>
+		$(function () {
+			$('#page_select_div').show();
+			$('#page_size').show();
+			display.addHandlers();
+		})
+	</script>
+{% endblock %}
+
+{% block breadcrumbs %}
+	<div id="breadcrumbs">
+		<a href="/citations/">Citations Home</a>
+		{% if search_results == True %}
+			>
+			{% if advanced == True %}
+				<a href="/citations/search/advanced/?{{ search_query }}">Search</a>
+			{% else %}
+				<a href="/citations/search/?{{ search_query }}">Search</a>
+			{% endif %}
+		{% endif %}
+	</div>
+{% endblock %}
+
+
+{% block container %}
+	<div id="container">
+
+		{% if add_perms %}
+			{% if patristics_results != True %}
+				<a href="/citations/{{model}}/edit?{{ back_query }}"> add new {{ model }}</a>
+			{% endif %}
+		{% endif %}
+			<div id="page_size" style="display:none">
+				<select id="page_size_select">
+					{% for i in page_options %}
+						{% if i == page_size %}
+							<option value="{{ no_size_link }}&limit={{i}}" selected="selected">{{i}}</option>
+						{% else %}
+							<option value="{{ no_size_link }}&limit={{i}}">{{i}}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+				per page
+			</div>
+			<br/>
+			<div id="page_nav">
+				{% if current_page == 1 %}
+					<button class="linkbutton pure-button" disabled="disabled" type="button"><<</button>
+					<button class="linkbutton pure-button" disabled="disabled" type="button"><</button>
+				{% else %}
+					<a class="linkbutton pure-button" type="button" href="{{ first_link }}">
+						<<
+					</a>
+					<a class="linkbutton pure-button" type="button" href="{{ previous_link }}">
+						<
+					</a>
+				{% endif %}
+				page
+				<noscript>{{ current_page }}</noscript>
+				<div id="page_select_div" style="display:none">
+					<select id="page_select">
+						{% for i in total_pages|get_range %}
+							{% if current_page == i %}
+								<option selected="selected" value="{{ page_select_link }}&offset={{ i|get_offset:page_size }}">{{ i }}</option>
+							{% else %}
+								<option value="{{ page_select_link }}&offset={{ i|get_offset:page_size }}">{{ i }}</option>
+							{% endif %}
+						{% endfor %}
+					</select>
+				</div>
+				of
+				{{total_pages}}
+				{% if current_page == total_pages %}
+					<button class="linkbutton pure-button" disabled="disabled" type="button">></button>
+					<button class="linkbutton pure-button" disabled="disabled" type="button">>></button>
+				{% else %}
+					<a class="linkbutton pure-button" type="button" href="{{ next_link }}">
+						>
+					</a>
+					<a class="linkbutton pure-button" type="button" href="{{ last_link }}">
+						>>
+					</a>
+				{% endif %}
+			</div>
+			{% if search_results != True and patristics_results != True %}
+			<div id="search_widget">
+				<form id="filter_form" action="/citations/{{ model }}" method="get">
+					<!-- Always reset page to 1 -->
+					<input type="hidden" name="offset" value="0"/>
+					<input type="hidden" name="limit" value="{{ page_size }}"/>
+					<!-- Keep sort and filter settings if we have them -->
+					{% if sort_value != '' %}
+						<input type="hidden" name="_sort" value="{{ sort_value }}"/>
+					{% endif %}
+					{% if remove_project_filter_link %} <!-- in other words we have one applied currently -->
+						<input type="hidden" name="_applyprojectfilter" value="true"/>
+					{% endif %}
+					<select id="search_field">
+						<option value="none">select</option>
+						{% block search_options %}
+							{% for field in fields %}
+								{% if field|get_id_field == request.GET.search_field %}
+									<option selected="selected" value="{{ field|get_search_field }}">{{ field|get_display_field }}</option>
+								{% else %}
+									<option value="{{ field|get_search_field }}">{{ field|get_display_field }}</option>
+								{% endif %}
+							{% endfor %}
+						{% endblock %}
+					</select>
+					<input id="search_text" value="{{ request.GET.search_text }}" type="text">
+					<input class="pure-button" id="search" type="submit" value="Go">
+				</form>
+				{% if remove_filter_required %}
+					<button id="remove_filter_button" data-url="{{ no_filter_link }}" class="buttonlink pure-button" type="button">{{ remove_filter_button_label }}</button>
+				{% endif %}
+			</div>
+			{% endif %}
+
+
+			<div id="content">
+			{% block data_list_table %}
+				<table class="data_list" id="data_table">
+					<tbody>
+						{% block data_list_header %}
+							<tr>
+								<th></th><!-- blank for 'view' links -->
+								{% for field in fields %}
+									<th>
+										<div class="field_header">
+											{{ field|get_display_field }}
+										</div>
+										<div class="sort_links">
+											<a class="{% if field|get_id_field == request.GET.sort %}
+													current_sort
+												{% endif %} spanlink" href="{{ no_sort_link }}&_sort={{field|get_sort_field}}">
+												<span id="{{ field|get_id_field }}_up">▲</span>
+											</a>
+											<a class="{% if field|get_id_field|reverse_concat:'-' == request.GET.sort %}
+													current_sort
+												{% endif %} spanlink" href="{{ no_sort_link }}&_sort=-{{field|get_sort_field}}">
+												<span id="{{ field|get_id_field }}_down">▼</span>
+											</a>
+										</div>
+									</th>
+								{% endfor %}
+								{% if edit_perms %}
+									<th></th>
+								{% endif %}
+							</tr>
+						{% endblock %}
+						{% block data_list_rows %}
+							{% for entry in data %}
+								<tr class="{{ forloop.counter0|get_row_class }}">
+									<td><a class="view_link" href="/citations/{{ model }}/{{ entry.id }}?{{ back_query }}">view</a></td>
+									{% for field in fields %}
+		    							<td>{{ entry|get_data_value:field }}</td>
+									{% endfor %}
+									{% if edit_perms %}
+										{% if filter_by_project %}
+											<td><a class="edit_link" href="/citations/{{ model }}/edit/{{ entry.id }}?{{ back_query }}">edit</a></td>
+										{% elif entry.id in editable_ids %}
+											<td><a class="edit_link" href="/citations/{{ model }}/edit/{{ entry.id }}?{{ back_query }}">edit</a></td>
+										{% else %}
+											<td></td>
+										{% endif %}
+									{% endif %}
+								</tr>
+							{% endfor %}
+						{% endblock %}
+					</tbody>
+				</table>
+			{% endblock %}
+			</div>
+	</div>
+{% endblock %}
+
+{% block footer %}
+	<div id="footer">
+		{% if public == True %}
+			{% if apply_project_filter_link %}
+				<a class="pure-button" id="apply_project_filter_button" href="{{ apply_project_filter_link }}">
+					Apply Project Filter
+				</a>
+			{% endif %}
+			{% if remove_project_filter_link %}
+				<a class="pure-button" id="remove_project_filter_button" href="{{ remove_project_filter_link }}">
+					Remove Project Filter
+				</a>
+			{% endif %}
+		{% endif %}
+	</div>
+{% endblock %}

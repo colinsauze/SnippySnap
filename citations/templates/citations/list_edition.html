@@ -1,0 +1,33 @@
+{% extends "citations/list_base.html" %}
+{% load citation_filters %}
+
+
+{% block data_list_rows %}
+	{% for entry in data %}	
+	<tr class="{{ forloop.counter0|get_row_class }}">
+		<td><a class="view_link" href="/citations/{{ model }}/{{ entry.id }}?{{ back_query }}">view</a></td>				
+		{% for field in fields %}
+			{% if field|get_id_field == 'author' %}
+				<td>{{ entry.author.abbreviation }}</td>
+			{% elif field|get_id_field == 'work' %}
+				<td>{{ entry.work.abbreviation }}</td>
+			{% elif field|get_id_field == 'series' %}
+				<td>{{ entry.series.abbreviation }}</td>
+			{% elif field|get_id_field == 'onlinecorpus' %}
+				<td>{{ entry.onlinecorpus.abbreviation }}</td>
+			{% else %}
+				<td>{{ entry|get_data_value:field }}</td>
+			{% endif %}
+		{% endfor %}
+		{% if edit_perms %}
+			{% if filter_by_project %}
+				<td><a class="edit_link" href="/citations/{{ model }}/edit/{{ entry.id }}?{{ back_query }}">edit</a></td>
+			{% elif entry.id in editable_ids %}
+				<td><a class="edit_link" href="/citations/{{ model }}/edit/{{ entry.id }}?{{ back_query }}">edit</a></td>
+			{% else %}
+				<td></td>
+			{% endif %}
+		{% endif %}
+	</tr>
+	{% endfor %}
+{% endblock %}

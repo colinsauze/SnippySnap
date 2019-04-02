@@ -1,0 +1,22 @@
+
+div#overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: #000;
+    opacity: 0.3;
+}
+
+div#overlay_message {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    width:500px;
+    margin-left: -250px;
+}
+
+br {
+    clear: both;
+}

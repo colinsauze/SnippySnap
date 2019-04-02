@@ -1,0 +1,86 @@
+{% extends "citations/edit_base.html" %}
+{% load static %}
+
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'citations/js/edit_author.js' %}"></script>
+{% endblock %}
+
+{% block form %}
+<form id="author_form" action="#">
+	{% csrf_token %}
+    <input class="integer" type="hidden" id="id" name="id"/>
+    <input class="string" type="hidden" name="identifier" id="identifier"/>
+    <input class="datetime" type="hidden" id="created_time" name="created_time"/>
+	<input class="datetime" type="hidden" id="last_modified_time" name="last_modified_time"/>
+	<input class="string" type="hidden" id="created_by" name="created_by"/>
+	<input class="string" type="hidden" id="last_modified_by" name="last_modified_by"/>
+	<input class="boolean" type="hidden" id="created_for_biblindex" name="created_for_biblindex"/>
+    <div class="form_section" id="section1">
+        <label for="abbreviation" class="top width_half">Abbreviation: <b>*</b><input class="string required" type="text" id="abbreviation" name="abbreviation"/></label>
+        <label for="full_name" class="top width_half">Full Name:<input class="string" type="text" id="full_name" name="full_name"/></label>
+        <br/>
+        <label id="born_label" for="born" class="top width_quarter">Born:<input class="integer" type="text" id="born" name="born"/></label>
+        <label for="born_is_approximate" class="top checkbox_label">Approx.<input class="boolean" type="checkbox" name="born_is_approximate" id="born_is_approximate"/></label>
+        <label id="died_label" for="died" class="top width_quarter">Died:<input class="integer" type="text" id="died" name="died"/></label>
+        <label for="died_is_approximate" class="top checkbox_label">Approx.<input class="boolean" type="checkbox" name="died_is_approximate" id="died_is_approximate"/></label>
+    	<br/>
+    </div>
+    <div class="form_section" id="section2">
+        <label for="active" class="top width_half">Tradition: <b>*</b><select class="string required" id="language" name="language"><option value="grc">Greek</option><option value="lat">Latin</option></select></label>
+        <label for="century_active" class="top width_half">Century active:<input class="integer" type="text" id="century_active" name="century_active"/></label>
+        <br/>
+        <label for="clavis" class="top width_half">Clavis:<input class="string" type="text" id="clavis" name="clavis"/></label>
+        <label for="place" class="top width_half">Place:<input class="string" type="text" id="place" name="place"/></label>
+    </div>
+    <div class="form_section" id="section3">
+        <br/>
+        <div class="column" id="author_checkboxes">
+	        <label for="pseudonymous"><input class="boolean" type="checkbox" name="pseudonymous" id="pseudonymous"/>Pseudonymous?</label>
+	        <br/>
+	        <label for="anonymous_collective"><input class="boolean" type="checkbox" name="anonymous_collective" id="anonymous_collective"/>Anonymous collective?</label>
+	        <br/>
+	        <label for="transmitted_by_another"><input class="boolean"type="checkbox" name="transmitted_by_another" id="transmitted_by_another"/>Transmitted by another author?</label>
+        </div>
+        <div class="column">
+	        <label for="translated_source"><input class="boolean" type="checkbox" name="translated_source" id="translated_source"/>Translated source?</label>
+	        <br/>
+	        <label for="obsolete"><input class="boolean" type="checkbox" name="obsolete" id="obsolete"/>Obsolete?</label>
+        </div>
+        <br/>
+    </div>
+    <div class="form_section" id="section4">
+    	<h2>Alternative Identifiers</h2><br/>
+    	<div id="biblindex_identifiers_div">
+    		Biblindex Indentifiers
+    		<fieldset class="data_group stringlist" id="biblindex_identifiers">
+    		</fieldset>
+    		<img class="add_logo" height="20px" width="20px" title="Add another biblindex identifier" src="{% static 'citations/images/add.png' %}" id="add_biblindex_identifiers"/>
+    	</div>
+    	<br/>
+    	<div id="biblia_patristica_identifiers_div">
+    		Biblia Patristica Identifiers
+    		<fieldset class="data_group stringlist" id="biblia_patristica_identifiers">
+    		</fieldset>
+    		<img class="add_logo" height="20px" width="20px" title="Add another biblia patristica identifier" src="{% static 'citations/images/add.png' %}" id="add_biblia_patristica_identifiers"/>
+    	</div>
+    	<br/>
+    </div>
+    <div class="form_section" id="section5">
+    	<label for="comments" class="top">Comments</label><br/>
+    	<textarea id="comments" name="comments" cols="65" rows="5"></textarea>
+    </div>
+    <div id="submit_section">
+        <input id="submit_another" type="button" value="Save and add another"/>
+        <br/>
+        <input id="submit_continue" type="button" value="Save and continue editing"/>
+        <input id="submit_home" type="button" value="Save and return to author list"/>
+        <br/>
+        <input id="delete" class="delete_button" type="button" value="Delete author"/>
+        <input id="reset_form" class="delete_button" type="button" value="Reset form"/>
+    </div>
+
+</form>
+
+{% endblock %}

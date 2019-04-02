@@ -1,0 +1,68 @@
+{% extends "citations/item_base.html" %}
+{% load citation_filters %}
+
+
+{% block standard_fields %}
+	{% for key, value in data.items %}
+		{% if key == 'work' %}
+			<tr>
+				<th>
+					Author
+				</th>
+				<td>
+					<a href="/citations/author/{{ data.work.value.author.id }}">{{ data.work.value.author }}</a>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					{{ value.label }}
+				</th>
+				<td>
+					<a href="/citations/{{ key }}/{{ value.value.id }}">{{ value.value }}</a>
+				</td>
+			</tr>
+		{% else %}
+			<tr>
+				<th>
+					{{ value.label }}
+				</th>
+				<td>	
+					{% if value.value != '' %}			
+						{% if key == 'onlinecorpus' or key == 'edition' %}
+							<a href="/citations/{{ key }}/{{ value.value.id }}">{{ value.value }}</a>
+						{% else %}	
+							{% if key == 'manuscript_variants' %}
+								{% for variant in value.value %}
+									{{ variant.headword }}] {{ variant.variant }} {{ variant.support }}
+									{% if variant.maj == True %}
+										(maj)
+									{% endif %}
+									<br/>
+								{% endfor %}
+							{% else %}
+								{{ value.value }}
+							{% endif %}	
+						{% endif %}
+					{% endif %}
+				</td>
+			</tr>
+		{% endif %}
+	{% endfor %}
+{% endblock %}
+
+{% block relations %}
+	{% if dependencies %}
+		<tr>
+			<th>Dependencies</th>
+			<td>
+				{% for dependency in dependencies %}
+					{{ dependency.relation_type|get_title_case }}
+					<a href="/citations/author/{{ dependency.author.id }}">{{ dependency.author }}</a>, 
+					<a href="/citations/work/{{ dependency.work.id }}">{{ dependency.work }}</a>
+					{{ dependency.work_reference }}
+					<br/>
+				{% endfor %}
+			</td>
+		</tr>
+	{% endif %}
+{% endblock %}	

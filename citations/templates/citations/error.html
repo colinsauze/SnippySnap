@@ -1,0 +1,16 @@
+{% extends "citations/base.html" %}
+{% load citation_filters %}
+
+{% block body %}
+<div id="header" class="citations_header">
+    <h1 id="title">{{ error_type }}</h1>
+    {% block login_status %}
+      {{ block.super }}
+    {% endblock %}
+</div>
+<div id="container">
+	<p>
+		{{ error_message }}
+	</p>
+</div>
+{% endblock %}

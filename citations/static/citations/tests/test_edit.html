@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>edit tests</title>
+  <link rel="stylesheet" href="../../../../static/tests/qunit-2.1.1.css">
+</head>
+<body>
+	<script>testing = true</script>
+  	<script src="../../../../static/js/jquery.min.js"></script>
+  	<script src="../../../../static/tests/qunit-2.1.1.js"></script>
+ 	<script src="../../../../static/tests/sinon-1.17.7.js"></script>
+   	<script src="../../../../static/js/forms.js"></script>
+  	<script src="../../../../static/js/utils.js"></script>
+  	<script src="../js/edit.js"></script>
+  	
+  	<!-- set up the environment -->  	
+  	<script>		
+	  	var server, sandbox, cits, project;
+	  	QUnit.testStart(function () {
+	  	  	
+		  	  project = {
+						'edition_transcribers': ['testuser1'], 
+						'online_transcribers': ['testuser2'],
+						'language': 'grc',
+						'form_settings': {'testmodel': {'edition_transcribers': ['sectionA']}},
+						'submit_settings': {'testmodel': {'edition_transcribers': ['submit_continue', 'submit_same']}},
+						'preselects': {'testmodel' : {'language': 'lat', 'author': 'testAuthor'}}
+					};
+				cits = {};
+				cits.user = {};
+				cits.user.id = 'testuser1';
+				cits.project = project; 
+				server = sinon.fakeServer.create(); 
+		  	  	sandbox = sinon.sandbox.create();
+	  	});
+	  	QUnit.testDone(function () {
+	  		server.restore(); 
+	  		sandbox.restore();
+	  		cits = null;
+	  	});
+  	
+  		QUnit.test("test getUserStatus", function (assert) {
+  			assert.equal(edit.getUserStatus(), 'edition_transcribers');
+  			//switch user and try again
+  			cits.user.id = 'testuser2';
+  			assert.equal(edit.getUserStatus(), 'online_transcribers');
+  			//try with no user
+  			cits.user.id = null;
+  			assert.equal(edit.getUserStatus(), null);
+  			//put user back
+  			cits.user.id = 'testuser1';
+  		});
+  		
+  		QUnit.test("test configureForm", function (assert) {
+  			edit.configureForm('testmodel');
+  			assert.notEqual(document.getElementById('sectionA').style.display, 'none');
+  			assert.equal(document.getElementById('sectionB').style.display, 'none');
+  		});
+  		
+  		QUnit.test("test configureSubmit", function (assert) {
+  			edit.configureSubmit('testmodel');
+  			assert.equal(document.getElementById('delete').style.display, 'none');
+  			assert.notEqual(document.getElementById('submit_continue').style.display, 'none');
+  			assert.notEqual(document.getElementById('submit_same').style.display, 'none');
+  		});
+  		
+  		QUnit.test("test setPreselects", function (assert) {
+  			edit.setPreselects('testmodel');
+  			assert.equal(document.getElementById('language').value, 'lat');
+  			assert.equal(document.getElementById('language').disabled, true);
+  			assert.equal($('input[name="language"][type="hidden"]').length, 1);
+  			assert.equal($('input[name="language"][type="hidden"]').attr('value'), 'lat');  			
+  		});
+  		
+  		QUnit.test("test getSelectedOptionValue", function (assert){
+  			assert.equal(edit.getSelectedOptionValue('testmodel', 'work', {}), undefined);
+  			assert.equal(edit.getSelectedOptionValue('testmodel', 'author', {}), 'testAuthor');
+  			assert.equal(edit.getSelectedOptionValue('testmodel', 'work', {'select': 'testWork'}), 'testWork');
+  			assert.equal(edit.getSelectedOptionValue('testmodel', 'author', {'select': 'myTestAuthor'}), 'myTestAuthor');
+  		});
+  		
+  		QUnit.test("test getDataAndPopulate getItemsFromDatabase spy", function (assert) {
+  			//just test the correct arguments are passed through by getDataAndPopulate
+  			//nothing else happens in the function before that anyway
+  			var get_items, criteria, options;
+  			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+  			criteria = {'limit': 1000000, 
+						'_sort':'abbreviation', 
+						'language': 'grc', 
+						'_fields': 'id,abbreviation,full_name,obsolete',
+						}
+  			options = {}
+  			edit.getDataAndPopulate('author', criteria, options);
+  			assert.ok(get_items.calledOnce); 
+  			assert.ok(get_items.calledWith('citations', 'author', {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					}, 'GET'));
+			assert.equal(server.requests[0].method, 'GET');
+  		});
+  		
+  		QUnit.test("test getDataAndPopulate populateSelect1 spy", function (assert) {
+  			var populate_select, response_data, criteria, select, options;
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 1, "abbreviation": 'A1', "full_name": 'Author 1', "obsolete": true}, 
+			                                 {"id": 2, "abbreviation": 'A2', "full_name": 'Author 2', "obsolete": null}]};
+  			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					}
+			options = {'text_keys': {1 : 'abbreviation', 2 : 'full_name'}}
+  			edit.getDataAndPopulate('author', criteria, options);
+			server.requests[0].respond(200, 
+									{"Content-Type": "application/json"}, 
+									JSON.stringify(response_data));
+			assert.ok(populate_select.calledOnce);
+			select = document.getElementById('author');
+			options = select.getElementsByTagName('OPTION');
+			//check number of options
+			assert.equal(options.length, 3);
+			//check values are correct
+			assert.equal($(options[1]).attr('value'), '1');
+			assert.equal($(options[2]).attr('value'), '2');
+			//check visible text is correct
+			assert.equal($(options[1]).text(), 'A1, Author 1');
+			assert.equal($(options[2]).text(), 'A2, Author 2');
+			//check add_class settings are correct
+			assert.equal($(options[1]).hasClass('obsolete'), true);
+			assert.equal($(options[2]).hasClass('obsolete'), false);
+			//check correct one is selected - here none
+			assert.equal(select.value, 'none');
+  		});
+  		
+  		QUnit.test("test getDataAndPopulate populateSelect2 spy", function (assert) {
+  			//test with provided selected author
+  			var populate_select, response_data, select;
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 1, "abbreviation": 'A1', "full_name": 'Author 1', "obsolete": true}, 
+			                                 {"id": 2, "abbreviation": 'A2', "full_name": 'Author 2', "obsolete": null}]};
+			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					}
+			options = {'text_keys': {1 : 'abbreviation', 2 : 'full_name'}, 'selected': 1}
+  			edit.getDataAndPopulate('author', criteria, options);
+			server.requests[0].respond(200, 
+					{"Content-Type": "application/json"}, 
+					JSON.stringify(response_data));
+			select = document.getElementById('author');
+			//check correct one is selected - here 1 as a string because this is just the raw value not the one we would serialise to
+			assert.equal(select.value, '1');
+  		});
+  		
+  		QUnit.test("test getDataAndPopulate populateSelect3 spy", function (assert) {
+  			//test default is selected when only one returned
+  			var populate_select, response_data, select;
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 2, "abbreviation": 'A2', "full_name": 'Author 2', "obsolete": true}]};
+  			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					}
+			options = {'text_keys': {1 : 'abbreviation', 2 : 'full_name'}}
+  			edit.getDataAndPopulate('author', criteria, options);
+			server.requests[0].respond(200, 
+					{"Content-Type": "application/json"}, 
+					JSON.stringify(response_data));
+			select = document.getElementById('author');
+			//check correct one is selected - here 2 by default because there is only one returned
+			assert.equal(select.value, '2');
+  		});
+  		
+  		QUnit.test("test getDataAndPopulate populateSelect4 spy", function (assert) {
+  			//test with provided selected author when that author is not returned
+  			var populate_select, response_data, select;
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 2, "abbreviation": 'A2', "full_name": 'Author 2', "obsolete": true}]};
+  			
+  			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					}
+			options = {'text_keys': {1 : 'abbreviation', 2 : 'full_name'}, 'selected': 1}
+  			edit.getDataAndPopulate('author', criteria, options);
+			server.requests[0].respond(200, 
+					{"Content-Type": "application/json"}, 
+					JSON.stringify(response_data));
+			select = document.getElementById('author');
+			//check correct one is selected - here we have asked for one that is not in the data so should be none
+			assert.equal(select.value, 'none');
+  		});
+  		
+		QUnit.test("test populateAuthor getItems1 spy", function (assert) {
+			var get_items, criteria;
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			
+			edit.populateAuthor('citation')
+			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,full_name,obsolete',
+					};
+			
+			assert.ok(get_items.calledOnce);
+			assert.ok(get_items.calledWith('citations', 'author', criteria, 'GET'));
+		});
+		
+		QUnit.test("test populateAuthor getItems2 spy", function (assert) {
+			var get_items, criteria;
+			//test obsolete setting in criteria
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			
+			edit.populateAuthor('citation', {'inc_obsolete': false});
+			criteria = {'limit': 1000000, 
+						'_sort':'abbreviation', 
+						'language': 'grc', 
+						'_fields': 'id,abbreviation,full_name,obsolete',
+						'obsolete': '!true',
+						}
+			assert.ok(get_items.calledWith('citations', 'author', criteria, 'GET'));
+		});
+		
+		QUnit.test("test populateAuthor getItems3 spy", function (assert) {
+			var get_items, criteria;
+			//check it is the value of obsolete not just the key that makes it work
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			
+			edit.populateAuthor('citation', {'inc_obsolete': true});
+			criteria = {'limit': 1000000, 
+						'_sort':'abbreviation', 
+						'language': 'grc', 
+						'_fields': 'id,abbreviation,full_name,obsolete',
+						}
+			assert.ok(get_items.calledWith('citations', 'author', criteria, 'GET'));
+		});
+		
+		QUnit.test("test populateAuthor getItems4 spy", function (assert) {
+			var get_items, criteria;
+			//add author ids to project to test they are added to criteria
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			cits.project.author_ids = [1, 2];
+			edit.populateAuthor('citation');
+			criteria = {'limit': 1000000, 
+						'_sort':'abbreviation', 
+						'language': 'grc', 
+						'_fields': 'id,abbreviation,full_name,obsolete',
+						'id': '1,2',
+						}
+			assert.ok(get_items.calledWith('citations', 'author', criteria, 'GET'));
+		});
+		
+		QUnit.test("test populateWork getItems1 spy", function (assert) {
+			var get_items, criteria;
+			//test obsolete and author select
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			edit.populateWork('citation', {'inc_obsolete': false, 'author': 1});
+			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,title,obsolete',
+					'obsolete': '!true',
+					'author__id': 1,
+					}
+			assert.ok(get_items.calledWith('citations', 'work', criteria, 'GET'));	
+		});
+  		
+		QUnit.test("test populateWork getItems2 spy", function (assert) {
+			var get_items, criteria;
+			//test obsolete and author select with authors in project settings
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			cits.project.author_ids = [1, 2];
+			edit.populateWork('citation');
+			criteria = {'limit': 1000000, 
+					'_sort':'abbreviation', 
+					'language': 'grc', 
+					'_fields': 'id,abbreviation,title,obsolete',
+					'author__id': '1,2',
+					}
+			assert.ok(get_items.calledWith('citations', 'work', criteria, 'GET'));	
+		});
+		
+		QUnit.test("test populateWork populateSelect1 spy", function (assert) {
+			var populate_select, criteria;
+			//test that reactivate works after populate select when set
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			edit.populateWork('citation', {'author': 1})
+  			response_data = {"results": [{"id": 1, "abbreviation": 'Work1'}, 
+  			                                 {"id": 2, "abbreviation": 'Work2'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('work').value, 'none');
+  			assert.equal(document.getElementById('work').disabled, false);
+		});
+		
+		QUnit.test("test populateWork populateSelect2 spy", function (assert) {
+			var populate_select, criteria;
+			//test that reactivate does not get set after populate select
+			//when work and author as supplied
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			edit.populateWork('citation', {'author': 1, 'select': 1})
+  			response_data = {"results": [{"id": 1, "abbreviation": 'Work1'}, 
+  			                                 {"id": 2, "abbreviation": 'Work2'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('work').value, '1');
+  			assert.equal(document.getElementById('work').disabled, true);
+		});
+		
+		QUnit.test("test populateEdition getItems1 spy", function (assert) {
+			var get_items, criteria;
+			//test basic function with no specified data
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			//cits.project.author_ids = [1, 2];
+			edit.populateEdition('citation');
+			criteria = {'limit': 1000000, 
+					'_sort':'editor', 
+					'_fields': 'id,identifier,onlinecorpus,series,editor,year,legacy_edition',
+					}
+			assert.ok(get_items.calledWith('citations', 'edition', criteria, 'GET'));	
+		});
+		
+		QUnit.test("test populateEdition getItems2 spy", function (assert) {
+			var get_items, criteria;
+			//test that selected work overrides project author settings
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			cits.project.author_ids = [1, 2];
+			edit.populateEdition('citation', {'work': 1});
+			criteria = {'limit': 1000000, 
+					'_sort':'editor', 
+					'_fields': 'id,identifier,onlinecorpus,series,editor,year,legacy_edition',
+					'work__id': 1
+					}
+			assert.ok(get_items.calledWith('citations', 'edition', criteria, 'GET'));	
+		});
+		
+		QUnit.test("test populateEdition getItems3 spy", function (assert) {
+			var get_items, criteria;
+			//test that selected project settings are used when no author provided
+			get_items = sandbox.spy(utils, 'getItemsFromDatabase');
+			cits.project.author_ids = [1, 2];
+			edit.populateEdition('citation');
+			criteria = {'limit': 1000000, 
+					'_sort':'editor', 
+					'_fields': 'id,identifier,onlinecorpus,series,editor,year,legacy_edition',
+					'work__author__id': '1,2'
+					}
+			assert.ok(get_items.calledWith('citations', 'edition', criteria, 'GET'));	
+		});
+		
+		QUnit.test("test populateEdition populateSelect1 spy", function (assert) {
+			var populate_select, criteria;
+			//test that reactivate works after populate select when set
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			edit.populateEdition('citation', {'work': 1})
+  			response_data = {"results": [{"id": 1, "identifier": 'Edition1'}, 
+  			                                 {"id": 2, "identifier": 'Edition2'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('edition').value, 'none');
+  			assert.equal(document.getElementById('edition').disabled, false);
+		});
+		
+		QUnit.test("test populateEdition populateSelect2 spy", function (assert) {
+			var populate_select, criteria;
+			//test that reactivate does not get set after populate select
+			//when work and author as supplied
+			populate_select = sandbox.spy(forms, 'populateSelect');
+			edit.populateEdition('citation', {'work': 1, 'select': 1})
+  			response_data = {"results": [{"id": 1, "identifier": 'Edition1'}, 
+  			                                 {"id": 2, "identifier": 'Edition2'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('edition').value, '1');
+  			assert.equal(document.getElementById('edition').disabled, true);
+		});
+			
+		QUnit.test("test populateOnlineCorpus populateSelect1 spy", function (assert) {
+  			//testing that the data processing call is run
+  			var populate_select, response_data;
+
+  			edit.populateOnlinecorpus('citation', {'select': 'VLD'});
+  			
+  			//spy on populateSelect and send something back to see if the callback is working
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 1, "abbreviation": 'TLG'}, 
+  			                                 {"id": 2, "abbreviation": 'VLD'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('onlinecorpus').value, 'VLD');
+  		});
+		
+		QUnit.test("test populateSeries populateSelect1 spy", function (assert) {
+  			//testing that the data processing call is run
+  			var populate_select, response_data;
+
+  			edit.populateOnlinecorpus('citation', {'select': 'PG'});
+  			
+  			//spy on populateSelect and send something back to see if the callback is working
+  			populate_select = sandbox.spy(forms, 'populateSelect');
+  			response_data = {"results": [{"id": 1, "abbreviation": 'PL'}, 
+  			                                 {"id": 2, "abbreviation": 'PG'}]};
+
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+  			assert.ok(populate_select.calledOnce);
+  			assert.equal(document.getElementById('onlinecorpus').value, 'PG');
+  		});
+		
+		
+		QUnit.test("test filterData author trigger", function (assert) {
+			var populate_work, show_validate_element, filter_data, response_data;
+			populate_work = sandbox.spy(edit, 'populateWork');
+			show_validate_element = sandbox.spy(forms, 'showValidateElement');
+			filter_data = sandbox.spy(edit, 'filterData');
+			
+			edit.filterData('citation', 'author', 1);
+			assert.ok(populate_work.calledOnce);
+			//send response from server and trigger first callback
+			response_data = {"results": [{"id": 1, "abbreviation": 'Work1'}, 
+			                             {"id": 2, "abbreviation": 'Work2'}]};
+			server.requests[0].respond(200, 
+									{"Content-Type": "application/json"}, 
+									JSON.stringify(response_data));
+			assert.ok(show_validate_element.calledOnce);
+			//check callback calls filterData again
+			assert.ok(filter_data.calledOnce);
+		});
+		
+		QUnit.test("test filterData work trigger", function (assert) {
+			var populate_edition, show_validate_element, response_data
+			populate_edition = sandbox.spy(edit, 'populateEdition');
+			show_validate_element = sandbox.spy(forms, 'showValidateElement');
+			edit.filterData('citation', 'work', 1);
+			//check the work trigger options call populate edition
+			assert.ok(populate_edition.calledOnce);
+			//send response from server and trigger first callback
+			response_data = {"results": [{"id": 1, "identifier": 'Edition1'}, 
+  			                             {"id": 2, "identifier": 'Edition2'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+			assert.ok(show_validate_element.calledOnce);
+		});
+		
+		QUnit.test("test loadData disableFields1 spy", function (assert) {
+			var disable_fields;
+			disable_fields = sandbox.spy(forms, 'disableFields');
+			edit.loadData('citation', {}, ['disable_test']);
+			assert.ok(disable_fields.calledWith(['disable_test'], 'citation_form'));	
+		});
+		
+		QUnit.test("test loadData disableFields2 spy", function (assert) {
+			var disable_fields;
+			disable_fields = sandbox.spy(forms, 'disableFields');
+			cits.project.preselects['citation'] = {'language': 'grc', 'other': true};
+			edit.loadData('citation', {}, ['disable_test']);
+			assert.ok(disable_fields.calledWith(['disable_test', 'language', 'other'], 'citation_form'));		
+		});
+		
+  	</script> 
+
+  	<script>testing = false</script>
+  	<div id="qunit"></div>
+ 	<div id="qunit-fixture">
+ 	
+ 		<form id="testmodel_form">
+ 			<div class="form_section" id="sectionA">
+ 				<input id="language" name="language" type="text"/>
+ 			</div>
+ 			<div class="form_section" id="sectionB">
+ 				<select id="author"></select>
+ 				<select id="work" disabled="disabled"></select>
+ 				<select id="edition" disabled="disabled"></select>
+ 				<select id="onlinecorpus"></select>
+ 			</div>
+ 			<div id="submit_section">
+ 				<input id="submit_same" type="button"/>
+ 				<input id="submit_continue" type="button"/>
+ 				<input id="delete" type="button"/>
+ 			</div>
+ 		</form>
+  		
+	</div>  
+</body>
+</html>

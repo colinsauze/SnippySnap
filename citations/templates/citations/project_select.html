@@ -1,0 +1,21 @@
+{% extends "citations/base.html" %}
+
+{% block container %}
+	<div id="container">
+		<form action="/citations" method="post">
+			{% csrf_token %}
+			<label for="">Project select: </label>
+			<select name="project" id="project">
+				<option value="None">No project</option>
+				{% for project in projects %}
+					{% if current_project == project.id %}
+						<option selected="selected" value="{{ project.id }}">{{ project.name }}</option>
+					{% else %}
+						<option value="{{ project.id }}">{{ project.name }}</option>
+					{% endif %}
+				{% endfor %}
+			</select>
+			<input class="pure-button" id="project_select_submit" type="submit" value="Select project" />
+		</form>
+	</div>
+{% endblock %}

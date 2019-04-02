@@ -1,0 +1,49 @@
+{% extends "citations/base.html" %}
+{% load static %}
+{% load citation_filters %}
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'common/js/utils.js' %}"></script>
+	<script type="text/javascript" src="{% static 'api/js/api.js' %}"></script>
+	<script type="text/javascript" src="{% static 'common/js/auto-complete.js' %}"></script>
+	<script type="text/javascript" src="{% static 'citations/js/search.js' %}"></script>
+	<script type="text/javascript" src="{% static 'common/js/forms.js' %}"></script>
+	<link rel=stylesheet href="{% static 'citations/css/search.css' %}" type="text/css"/>
+	<link rel=stylesheet href="{% static 'common/css/auto-complete.css' %}" type="text/css"/>
+
+	<script>
+		$(document).ready(function () {
+			search.initialise('quick');
+		})
+	</script>
+{% endblock %}
+
+{% block breadcrumbs %}
+	<div id="breadcrumbs">
+		<a href="/citations/">Citations Home</a>
+	</div>
+{% endblock %}
+
+{% block container %}
+	<div id="container">
+		<form id="quick_search_form">
+			<ul class="menu">
+				<li class="menu-item-selected" id="quick_search">Quick Search</li>
+				<li class="menu-item" id="advanced_search">Advanced Search</li>
+			</ul>
+
+			<p>Find citations of <select id="book_select"></select>
+			<input type="text" id="chapter_input" size="3"/>:<input type="text" id="verse_input" size="3"/>
+			in <select id="language_select">
+				<option value="none">Greek and Latin</option>
+				<option value="grc">Greek</option>
+				<option value="lat">Latin</option>
+			</select></p>
+
+			<input type="button" value="Search" id="quick_search_button"/>
+
+		</form>
+
+	</div>
+{% endblock %}

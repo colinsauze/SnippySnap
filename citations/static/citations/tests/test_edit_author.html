@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>edit_author tests</title>
+  <link rel="stylesheet" href="../../../../static/tests/qunit-2.1.1.css">
+</head>
+<body>
+	<script>testing = true</script>
+  	<script src="../../../../static/js/jquery.min.js"></script>
+  	<script src="../../../../static/tests/qunit-2.1.1.js"></script>
+ 	<script src="../../../../static/tests/sinon-1.17.7.js"></script>
+  	<script src="../js/edit_author.js"></script>
+
+  	<script>
+	  	var server, sandbox;
+	  	QUnit.testStart(function () {
+			server = sinon.fakeServer.create(); 
+		  	sandbox = sinon.sandbox.create();
+	  	});
+	  	QUnit.testDone(function () {
+	  		server.restore(); 
+	  		sandbox.restore();
+	  	});
+  	
+  		QUnit.test("test addBiblindexIdentifiers", function (assert) {
+  			//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+  			staticUrl = 'test/url';
+  			edit_author.addBiblindexIdentifiers();
+  			assert.notEqual(document.getElementById('biblindex_identifiers_0'), null);
+  			assert.notEqual(document.getElementById('delete_biblindex_identifiers_0'), null);
+  			edit_author.addBiblindexIdentifiers();
+  			assert.notEqual(document.getElementById('biblindex_identifiers_1'), null);
+  			assert.notEqual(document.getElementById('delete_biblindex_identifiers_1'), null);
+  			edit_author.addBiblindexIdentifiers('BIBINDEX1');
+  			assert.notEqual(document.getElementById('biblindex_identifiers_2'), null);
+  			assert.notEqual(document.getElementById('delete_biblindex_identifiers_2'), null);
+  			assert.equal(document.getElementById('biblindex_identifiers_2').value, 'BIBINDEX1');
+  		});
+  		
+  		QUnit.test("test addBibliaPatristicaIdentifiers", function (assert) {
+  			//this is tricky to test as we can't access the count variable
+  			//so it needs to do it all in one test so we can predict increments
+  			staticUrl = 'test/url';
+  			edit_author.addBibliaPatristicaIdentifiers();
+  			assert.notEqual(document.getElementById('biblia_patristica_identifiers_0'), null);
+  			assert.notEqual(document.getElementById('delete_biblia_patristica_identifiers_0'), null);
+  			edit_author.addBibliaPatristicaIdentifiers();
+  			assert.notEqual(document.getElementById('biblia_patristica_identifiers_1'), null);
+  			assert.notEqual(document.getElementById('delete_biblia_patristica_identifiers_1'), null);
+  			edit_author.addBibliaPatristicaIdentifiers('BPI');
+  			assert.notEqual(document.getElementById('biblia_patristica_identifiers_2'), null);
+  			assert.notEqual(document.getElementById('delete_biblia_patristica_identifiers_2'), null);
+  			assert.equal(document.getElementById('biblia_patristica_identifiers_2').value, 'BPI');
+  		});
+
+		
+  	</script> 
+
+  	<script>testing = false</script>
+  	<div id="qunit"></div>
+ 	<div id="qunit-fixture">
+ 	
+ 		<div id="biblindex_identifiers_div">
+    		Biblindex Indentifiers
+    		<fieldset class="data_group stringlist" id="biblindex_identifiers">    		
+    		</fieldset>
+    		<img class="add_logo" height="20px" width="20px" title="Add another biblindex identifier" src="{% static 'citations/images/add.png' %}" id="add_biblindex_identifiers"/>    		
+    	</div>
+		<div id="biblia_patristica_identifiers_div">
+    		Biblia Patristica Identifiers
+    		<fieldset class="data_group stringlist" id="biblia_patristica_identifiers">
+    		</fieldset>
+    		<img class="add_logo" height="20px" width="20px" title="Add another biblia patristica identifier" src="{% static 'citations/images/add.png' %}" id="add_biblia_patristica_identifiers"/>
+    	</div>
+  		
+	</div>  
+</body>
+</html>

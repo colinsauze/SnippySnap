@@ -1,0 +1,222 @@
+
+/* data list */
+
+
+table.data_list {
+	clear: both;
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 11pt;
+}
+
+table.data_list td, table.data_list th {
+	border: 1px solid white;
+	padding: 4px;
+}
+
+table.data_list tr {
+	background-color: #EBF5FF;
+}
+
+table.data_list tr.odd {
+	background-color: #CCE6FF;
+}
+
+table.data_list tr.odd table tr {
+	background-color: #CCE6FF;
+}
+
+table.data_list th {
+	background-color: #8AB8E6;
+}
+
+table.data_list td.container {
+	padding: 0px;
+}
+
+table.data_list th.container {
+	padding: 0px;
+}
+
+table.data_list table.inner {
+	width: 100%;
+	height: 100%;
+	table-layout: fixed;
+	margin: 0;
+	border: 0;
+	border-right: 1px solid white;
+	border-collapse: collapse;
+}
+
+
+div.field_header {
+	float: left;
+	width: 70%;
+}
+
+.view_link {
+	color: black;
+}
+
+/************************************************************************/
+/* data instance */
+
+table.data_instance {
+	clear: both;
+	border-collapse: collapse;
+	/*width: 100%;*/
+}
+
+table.data_instance td, table.data_instance th {
+	border: 1px solid white;
+	padding: 6px;
+	
+}
+
+table.data_instance {
+	border: 2px solid #8AB8E6;
+	font-size: 14px;
+}
+
+table.data_instance th {
+	background-color: #CCE6FF;
+	font-weight: bold;
+	min-width: 250px;
+	text-align: left;
+	vertical-align: top;
+}
+
+
+table.data_instance td {
+	background-color: #EBF5FF;
+	text-align: left !important;
+}
+
+table.data_instance .container {
+	border-bottom: 0px;
+}
+
+table.data_instance .inner td.container {
+	padding: 0px;
+}
+
+table.data_instance .inner th.container {
+	padding: 0px;
+}
+
+table.data_instance td.level0 {
+	vertical-align: top;
+}
+
+table.data_instance td.level1 {
+	text-align: right;
+	vertical-align: top;
+	border-top: none;
+	border-bottom: none;
+	font-weight: normal;
+	padding-bottom: 3px;
+	padding-top: 3px;
+}
+
+table.data_instance table.inner {
+	border-collapse: collapse;
+	font-size: 14px;
+	table-layout: fixed;
+	width: 60%;
+}
+
+table.data_instance table.inner table.inner {
+	border-collapse: collapse;
+	font-size: 14px;
+	table-layout: fixed;
+	width: 100%;
+}
+
+table.data_instance .inner th {
+	font-weight: normal;
+	border: 1px solid white;
+	padding: 3px;
+	table-layout: fixed;
+	font-style: italic;
+}
+
+table.data_instance .inner td {
+	font-weight: normal;
+	border: 1px solid white;
+	padding: 3px;
+	table-layout: fixed;
+}
+
+/* sort triangle styling */
+
+div.sort_links {
+	display: block;
+	float: right;
+}
+
+div.sort_links span {
+	display: block;
+	cursor: pointer;
+}
+
+.spanlink {
+	text-decoration: none;
+	color: black;
+}
+
+div.sort_links a.current_sort {
+	color: grey !important;
+}
+
+
+/* navigation bar styling */
+
+div#page_nav {
+	float: right;
+	padding: 2px;
+}
+
+div#page_nav a {
+	text-decoration:none;
+}
+
+div#page_select_div {
+	display: inline-block;
+}
+
+#page_size {
+	float: right;
+}
+
+div#create_link, div#edit_link {
+	float: left;
+	padding-bottom: 5px;
+}
+
+div#search_widget {
+	float: left;
+}
+
+div#search_summary {
+	float: left;
+	margin-left: 10px;
+}
+
+
+
+#search_field {
+	width: 150px;
+}
+
+#search_text {
+	width: 150px;
+}
+
+#filter_form {
+	display: inline-block;
+}
+
+#show_obsolete {
+	padding-left: 10px;
+	float: left;
+}

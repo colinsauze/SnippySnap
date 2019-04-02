@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load static %}
+{% load transcription_filters %}
+
+{% block head %}
+	{{ block.super }}
+	<script type="text/javascript" src="{% static 'common/js/jquery.min.js' %}"></script>
+	<title>{{ page_title }}</title>
+{% endblock %}

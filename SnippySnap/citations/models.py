@@ -7,7 +7,6 @@ from django.db.models.sql.compiler import SQLCompiler
 from rest_framework import serializers
 from api.models import BaseModel
 from transcriptions.models import Work as BiblicalWork
-from simple_history.models import HistoricalRecords
 
 
 """This contains all the models used by our citation system.
@@ -119,7 +118,6 @@ class Author (BaseModel):
     obsolete = models.NullBooleanField('Obsolete')
     comments = models.TextField('Comments', blank=True)
     created_for_biblindex = models.NullBooleanField('created_for_biblindex')
-    history = HistoricalRecords()
 
     def getSerializationFields():
         fields = '__all__'
@@ -204,7 +202,6 @@ class Work (BaseModel):
     obsolete = models.NullBooleanField('Obsolete')
     comments = models.TextField('Comments', blank=True)
     created_for_biblindex = models.NullBooleanField('created_for_biblindex')
-    history = HistoricalRecords()
 
     class Meta:
         ordering = ['abbreviation']
@@ -292,7 +289,6 @@ class Series (BaseModel):
     abbreviation = models.TextField('Abbreviation')
     title = models.TextField('Title', blank=True)
     comments = models.TextField('Comments', blank=True)
-    history = HistoricalRecords()
 
     def getSerializationFields():
         fields = '__all__'
@@ -362,7 +358,6 @@ class OnlineCorpus (BaseModel):
     url = models.TextField('URL', blank=True)
     access = models.TextField('Access', blank=True)
     comments = models.TextField('Comments', blank=True)
-    history = HistoricalRecords()
 
     def __str__(self):
         if self.abbreviation != '':
@@ -427,7 +422,6 @@ class Edition (BaseModel):
     bham_shelfmark = models.TextField('Bham Shelfmark', blank=True)
     legacy_edition = models.TextField('Edition (legacy format)', blank=True)
     comments = models.TextField('Comments', blank=True)
-    history = HistoricalRecords()
 
     class Meta:
         ordering = ['identifier']
@@ -619,7 +613,6 @@ class Citation (BaseModel):
     corrections_required = models.NullBooleanField('Corrections required')
     correction_notes = models.TextField('Correction notes', blank=True)
 
-    history = HistoricalRecords()
 
     class Meta:
         ordering = ['biblical_work__sort_value', 'chapter',
@@ -709,7 +702,6 @@ class Dependency (models.Model):
     work_reference = models.TextField('Work ref', blank=True)
     #we can cascade this one because if we delete the citation that it is part of we no longer need the dependency
     citation = models.ForeignKey(Citation, on_delete=models.CASCADE, related_name="dependencies", null=True)
-    history = HistoricalRecords()
 
     def __str__(self):
         return '%s %s in %s, %s' % (self.relation_type, self.author, self.work, self.work_reference)
@@ -784,7 +776,6 @@ class PrivateCitation (BaseModel):
     copied_to_private_time = models.DateTimeField('Copied to private time', null=True, blank=True)
     id_of_public_version = models.IntegerField('ID of public version', null=True, blank=True)
 
-    history = HistoricalRecords()
 
     class Meta:
         ordering = ['biblical_work__sort_value', 'chapter', 'verse', 'work__author__identifier', 'work__identifier', 'id']
@@ -829,7 +820,6 @@ class PrivateDependency (models.Model):
     work_reference = models.TextField('Work ref', blank=True)
     #we can cascade this one because if we delete the citation that it is part of we no longer need the dependency
     citation = models.ForeignKey(PrivateCitation, on_delete=models.CASCADE, related_name="dependencies", null=True)
-    history = HistoricalRecords()
 
     def __str__(self):
         return '%s %s in %s, %s' % (self.relation_type, self.author, self.work, self.work_reference)

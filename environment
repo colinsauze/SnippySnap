@@ -1,0 +1,10 @@
+Depedencies:
+
+Demo program (workspace for collaborative editing)
+postgres or sqlite
+Selenium
+Firefox or Chromium
+Dango
+
+HTML documentation assumed
+python script to build each screenshot

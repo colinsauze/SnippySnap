@@ -2,10 +2,12 @@ from selenium import webdriver
 from makereport import generate_report
 import take_screenshot
 
+
 def run():
 
     # obtain a firefox web driver for selenium
     browser = webdriver.Firefox()
+
 
     items = [ ("http://localhost/example/example1.html", "example1.png"), ("http://localhost/example/example2.html", "example2.png") ]
 
@@ -23,7 +25,7 @@ def run():
 
         # do other webpage actions here
 
-        # take a screenshot 
+        # take a screenshot
         same = take_screenshot.take_screenshot(browser, filename)
         if same == True:
             unchanged_images.append(filename)

@@ -1,7 +1,5 @@
 # SnippySnap
-A tool for automatically producing screenshots for documentation.
-
-Ideas google doc link https://docs.google.com/document/d/1XIXeqxUErFeoPe06e9G7FX93B20xQJcmc90mgaveilA/edit
+A tool for automatically producing screenshots for documentation. Written during the [Software Sustainability Institute's Collaborations Workshop 2019 Hackday](https://www.software.ac.uk/cw19). 
 
 Contributors: 
 

@@ -1,11 +1,7 @@
 dist: bionic
-language: python
-python:
-  - "3.6"
+language: generic
 # command to install dependencies
 install:
-  - sudo apt-get purge python3.6
-  - sudo apt-get autoremove && sudo apt-get autoclean
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic restricted"  
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic multiverse" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic universe" 
@@ -18,7 +14,7 @@ install:
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse"
   - sudo apt-get update
   - sudo apt-get -y upgrade
-  - sudo apt-get install -y git python3 python3-pip python3-selenium firefox firefoxdriver python3-opencv xvfb
+  - sudo apt-get install -y git python3 python3-pip python3-selenium firefox firefoxdriver python3-opencv xvfb python3-pycodestyle
 
 # command to run tests
 script:

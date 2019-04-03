@@ -14,8 +14,6 @@ def compare_image(file1, file2, changes_file, mask_file):
     img1 = cv2.imread(file1)
     img2 = cv2.imread(file2)
 
-    dt1 = np.dtype((np.uint32, (np.uint8, 4)))
-
     width1 = img1.shape[1]
     height1 = img1.shape[0]
     width2 = img2.shape[1]

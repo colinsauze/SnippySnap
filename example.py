@@ -1,15 +1,20 @@
 from selenium import webdriver
 from makereport import generate_report
 import take_screenshot
+'''Example SnippySnap application
+This will screenshot two URLs using Selenium, then ask SnippySnap to compare it
+to the previous screenshot and produce a report.
+'''
 
 
 def run():
+    '''Runs everything'''
 
-    # obtain a firefox web driver for selenium
+    # obtain a firefox web driver for Selenium
     browser = webdriver.Firefox()
 
-
-    items = [ ("http://localhost/example/example1.html", "example1.png"), ("http://localhost/example/example2.html", "example2.png") ]
+    items = [("http://localhost/example/example1.html", "example1.png"),
+             ("http://localhost/example/example2.html", "example2.png")]
 
     # lists for which images have/haven't changed
     unchanged_images = []
@@ -27,7 +32,7 @@ def run():
 
         # take a screenshot
         same = take_screenshot.take_screenshot(browser, filename)
-        if same == True:
+        if same is True:
             unchanged_images.append(filename)
         else:
             changed_images.append(filename)
@@ -35,6 +40,7 @@ def run():
     browser.quit()
 
     generate_report("outputs/report.html")
+
 
 if __name__ == '__main__':
     run()

@@ -2,7 +2,8 @@ from selenium import webdriver
 from makereport import generate_report
 import take_screenshot
 
-def wait_for(self, function_with_assertion, timeout=DEFAULT_WAIT):
+
+def wait_for(self, function_with_assertion, timeout=10):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
@@ -19,7 +20,7 @@ def run():
 
     #load the url
     browser.get("http://localhost/example/example1.html")
-    wait_for(lambda: self.assertTrue('SnippySnap Example Form 1' in self.browser.title))
+    wait_for(lambda: assertTrue('SnippySnap Example Form 1' in browser.title))
 
     browser.find_elements_by_css_selector("input[type='radio'][value='orange']")[0].click()
 

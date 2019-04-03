@@ -1,4 +1,5 @@
 from selenium import webdriver
+from makereport import generate_report
 import take_screenshot
 
 def run():
@@ -7,6 +8,10 @@ def run():
     browser = webdriver.Firefox()
 
     items = [ ("http://www.bbc.co.uk/news", "bbc-news.png"), ("http://www.bbc.co.uk/news/uk", "bbc-news-uk.png") ]
+
+    # lists for which images have/haven't changed
+    unchanged_images = []
+    changed_images = []
 
     for item in items:
 
@@ -19,9 +24,15 @@ def run():
         # do other webpage actions here
 
         # take a screenshot 
-        take_screenshot.take_screenshot(browser, filename)
+        same = take_screenshot.take_screenshot(browser, filename)
+        if same == True:
+            unchanged_images.append(filename)
+        else:
+            changed_images.append(filename)
 
     browser.quit()
+
+    generate_report(changed_images, unchanged_images, "outputs/report.html")
 
 if __name__ == '__main__':
     run()

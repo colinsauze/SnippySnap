@@ -7,7 +7,7 @@ def run():
     # obtain a firefox web driver for selenium
     browser = webdriver.Firefox()
 
-    items = [ ("http://www.bbc.co.uk/news", "bbc-news.png"), ("http://www.bbc.co.uk/news/uk", "bbc-news-uk.png") ]
+    items = [ ("http://localhost/example/example1.html", "example1.png"), ("http://localhost/example/example2.html", "example2.png") ]
 
     # lists for which images have/haven't changed
     unchanged_images = []

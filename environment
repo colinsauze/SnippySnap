@@ -1,14 +1,10 @@
 Depedencies:
 
-Selenium
-Firefox
-Geckodriver
+  * Selenium
+  * Firefox
+  * Geckodriver
+  * opencv
 
-HTML documentation assumed
-python script using Selenium to build each screenshot
-
-
-sudo apt-get update
-sudo apt install git python3 python3-pip python3-selenium firefox firefoxdriver python3-opencv
-
-
+To configure an ubuntu system:
+```sudo apt-get update```
+```sudo apt install git python3 python3-pip python3-selenium firefox firefoxdriver python3-opencv```

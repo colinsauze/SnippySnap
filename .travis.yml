@@ -5,9 +5,10 @@ python:
 # command to install dependencies
 install:
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic multiverse" 
-  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-updates multiverse" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic universe" 
+  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-updates main" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe" 
+  - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-updates multiverse" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-security main" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-security multiverse" 
   - sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-security universe"

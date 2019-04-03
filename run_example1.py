@@ -20,7 +20,7 @@ def run():
 
     #load the url
     browser.get("http://localhost/example/example1.html")
-    wait_for(lambda: self.assertTrue('SnippySnap Example Form 1' in self.browser.title))
+    wait_for(lambda: assertTrue('SnippySnap Example Form 1' in browser.title))
 
     browser.find_elements_by_css_selector("input[type='radio'][value='orange']")[0].click()
 

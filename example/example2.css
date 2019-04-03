@@ -1,27 +1,35 @@
 #personal_info.red {
   background-color: #ff3333;
+  opacity: 0.6;
 }
 
 #personal_info.orange {
   background-color: #ffb833;
+  opacity: 0.6;
 }
 
 #personal_info.yellow {
-  background-color: ffff33;
+  background-color: #ffff33;
+  opacity: 0.6;
 }
 
 #personal_info.green {
   background-color: #4dff4d;
+  opacity: 0.6;
 }
 
 #personal_info.blue {
   background-color: #3333ff;
+  opacity: 0.6;
 }
 
 #personal_info.indigo {
-  background-color: aa33ff;
+  background-color: #aa33ff;
+  opacity: 0.6;
 }
 
 #personal_info.violet {
   background-color: #ff33ff;
+  opacity: 0.6;
+
 }

@@ -34,7 +34,7 @@ def run():
 
     browser.quit()
 
-    generate_report(changed_images, unchanged_images, "outputs/report.html")
+    generate_report("outputs/report.html")
 
 if __name__ == '__main__':
     run()

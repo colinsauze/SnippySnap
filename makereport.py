@@ -15,13 +15,16 @@ def generate_report(report_filename):
 
     for filename in glob.glob("outputs/screenshots/*.png"):
         basename = os.path.basename(filename)
-        if os.path.exists("status-"+basename) == True:
-            statusfile = open("status-"+basename,"r")
+        if os.path.exists("outputs/"+basename+".status") == True:
+            statusfile = open("outputs/"+basename+".status","r")
             status = statusfile.read()
             if status == "unchanged":
                 unchanged_image_list.append(basename)
             elif status == "changed":
                 changed_image_list.append(basename)
+
+    print("unchanged files",unchanged_image_list)
+    print("changed files",changed_image_list)
 
     report = open(report_filename,"w")
 
@@ -42,7 +45,6 @@ def generate_report(report_filename):
     report.write("\t\t<h2>The following images are identical:</h2>\n")
     for image in unchanged_image_list:
         report.write("\t\t<p><a href=\"screenshots/"+image+"\">screenshots/"+image+"</a>\n")
-
 
     report.write("\t</body>\n</html>")
 

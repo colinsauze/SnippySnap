@@ -5,8 +5,8 @@ $(function () {
 
 
 highlightChange = function () {
-  //$('input[type="radio"]').parent().removeClass('selected');
-  //$(event.target).parent().addClass('selected');
-  $('#personal_info').removeClass();
-  $('#personal_info').addClass(event.target.value);
+  $('input[type="radio"]').parent().removeClass();
+  $(event.target).parent().addClass(event.target.value);
+  //$('#personal_info').removeClass();
+  //$('#personal_info').addClass(event.target.value);
 }

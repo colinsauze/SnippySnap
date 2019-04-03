@@ -1,27 +1,27 @@
-#personal_info.red {
+label.red {
   background-color: red;
 }
 
-#personal_info.orange {
+label.orange {
   background-color: orange;
 }
 
-#personal_info.yellow {
+label.yellow {
   background-color: yellow;
 }
 
-#personal_info.green {
+label.green {
   background-color: green;
 }
 
-#personal_info.blue {
+label.blue {
   background-color: blue;
 }
 
-#personal_info.indigo {
+label.indigo {
   background-color: indigo;
 }
 
-#personal_info.violet {
+label.violet {
   background-color: violet;
 }

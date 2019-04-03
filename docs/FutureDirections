@@ -1,0 +1,8 @@
+FUTURE DIRCTIONS
+
+This file provides information of features that we would like to include in this tool:
+
+1, Simplest use case - automate a screen shot of a GUI web app into html documentation. 
+2, Next use case is to campare this image with the previous image. If the previous image is different repace the screen shot in the html documentation.
+3, Create a list of screen shots of a GUI web app for a functional section.
+4, Trgger the running of the tool by a python script per image with a master python script to run it all.

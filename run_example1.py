@@ -3,7 +3,7 @@ from makereport import generate_report
 import take_screenshot
 
 
-def wait_for(self, function_with_assertion, timeout=10):
+def wait_for(function_with_assertion, timeout=10):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:

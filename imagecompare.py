@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def compare_file(file1, file2, changes_file, mask_file):
+def compare_image(file1, file2, changes_file, mask_file):
     '''Compares and highlights the differences between two images
     :param file1: The first image file
     :param file2: The second image file
@@ -31,15 +31,15 @@ def compare_file(file1, file2, changes_file, mask_file):
         return
 
     # output images
-    changes_img = np.ndarray(shape=[height, width, 3], dtype=np.uint8)
-    mask_img = np.ndarray(shape=[height, width], dtype=np.uint8)
+    changes_img = np.ndarray(shape=[height1, width1, 3], dtype=np.uint8)
+    mask_img = np.ndarray(shape=[height1, width1], dtype=np.uint8)
 
     is_different = False
 
     # Loops through every pixel in the image and compares it
     # FIXME: this is really suboptimal but I couldn't numpy magic to work
-    for y in range(0, height):
-        for x in range(0, width):
+    for y in range(0, height1):
+        for x in range(0, width1):
             # combine the R, G and B channels into one value for comparison
             b = img1[y][x][0]
             g = img1[y][x][1]
@@ -69,6 +69,6 @@ def compare_file(file1, file2, changes_file, mask_file):
                 # leave mask black
                 mask_img[y][x] = 0
 
-    cv2.imwrite(changes_img, changes_file)
-    cv2.imwrite(mask_img, mask_file)
+    cv2.imwrite(changes_file, changes_img)
+    cv2.imwrite(mask_file, mask_img)
     return is_different

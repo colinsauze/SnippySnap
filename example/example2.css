@@ -1,27 +1,27 @@
 #personal_info.red {
-  background-color: red;
+  background-color: #ff3333;
 }
 
 #personal_info.orange {
-  background-color: orange;
+  background-color: #ffb833;
 }
 
 #personal_info.yellow {
-  background-color: yellow;
+  background-color: ffff33;
 }
 
 #personal_info.green {
-  background-color: green;
+  background-color: #4dff4d;
 }
 
 #personal_info.blue {
-  background-color: blue;
+  background-color: #3333ff;
 }
 
 #personal_info.indigo {
-  background-color: indigo;
+  background-color: aa33ff;
 }
 
 #personal_info.violet {
-  background-color: violet;
+  background-color: #ff33ff;
 }

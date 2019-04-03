@@ -36,7 +36,7 @@ This proof of concept tool would benefit from many additions.
 
 We would like to add:
 
-
+* Add configuration file to customise the automation for the specific needs of a software project.
 * The ability to integratge this into a variety of workflows which could ionclude comtinious integration tests with systems such as Jenkins, the development of tutorials and training materials.
 * The ability to capture a screen shot of a specified area of a screen rather than always the whole screen or to be able to automatically crop the image perhaps using imageMagick or a similar command line package.
 * The ability to annotate a screenshot to highlight a particular area such as a button or text field.

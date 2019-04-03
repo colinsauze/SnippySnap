@@ -1,4 +1,3 @@
---
 
 ### Problem
 
@@ -31,10 +30,25 @@ When the screenshots have all been generated the user should check the report pr
 
 The ideal way to integrate this into a project is to include it in a continuous integration workflow. This would run tests, retake screenshots and rebuild the documentation using the new screenshots.
 
-#### Future Dirextions
+#### Future Developments
 
-* Use a command lione package such as ImageMagick to crop and annotate the captured images.
-* The ability to integratge this into a variety of workflows which could ionclude comtinious integration tests, the development of tutorials and training materials.
+This proof of concept tool would benefit from many additions.
+
+We would like to add:
+
+* Add configuration file to customise the automation for the specific needs of a software project.
+* The ability to integratge this into a variety of workflows which could ionclude comtinious integration tests with systems such as Jenkins, the development of tutorials and training materials.
+* The ability to capture a screen shot of a specified area of a screen rather than always the whole screen or to be able to automatically crop the image perhaps using imageMagick or a similar command line package.
+* The ability to annotate a screenshot to highlight a particular area such as a button or text field.
+* Improving the SnippySnap tool to work with non-browser based GUIs such as ImageJ and ParaView (this would need an alternative automation tool as Selenium only works with browsers).
 
 
+
+### Initial Development Road Map
+
+This file provides information of features that we would like to include in this tool:
+1, Simplest use case - automate a screen shot of a GUI web app into html documentation. 
+2, Next use case is to campare this image with the previous image. If the previous image is different repace the screen shot in the html documentation. 
+3, Create a list of screen shots of a GUI web app for a functional section. 
+4, Trgger the running of the tool by a python script per image with a master python script to run it all.
 

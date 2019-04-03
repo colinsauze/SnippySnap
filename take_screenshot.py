@@ -16,12 +16,12 @@ def take_screenshot(browser, filename):
         os.mkdir("outputs")
 
 
-    browser.save_screenshot(filename)
+    browser.save_screenshot("outputs/"+filename)
     same = True
     #compare with the previous screenshot (if it exists)
     if os.path.isfile("outputs/old_screenshots/"+filename) == True:
-        print("old image exists, comparing ",filename,"with old_screenshots/"+filename)
-        same = imagecompare.compare_image(filename, "outputs/old_screenshots/"+filename, "outputs/comparison-"+filename, "outputs/mask-"+filename)
+        print("old image exists, comparing ","outputs/"+filename,"with outputs/old_screenshots/"+filename)
+        same = imagecompare.compare_image("outputs/"+filename, "outputs/old_screenshots/"+filename, "outputs/comparison-"+filename, "outputs/mask-"+filename)
         if same == True:
             print(filename,"has not changed")
         else:
@@ -35,6 +35,6 @@ def take_screenshot(browser, filename):
         os.mkdir("outputs/old_screenshots")
 
     #copy the image
-    shutil.copyfile(filename,"outputs/old_screenshots/"+filename)
+    shutil.copyfile("outputs/"+filename,"outputs/old_screenshots/"+filename)
     return same
 

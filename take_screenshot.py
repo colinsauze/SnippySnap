@@ -17,15 +17,15 @@ def take_screenshot(browser, filename):
 
 
     browser.save_screenshot("outputs/"+filename)
-    same = True
+    is_different = False
     #compare with the previous screenshot (if it exists)
     if os.path.isfile("outputs/old_screenshots/"+filename) == True:
         print("old image exists, comparing ","outputs/"+filename,"with outputs/old_screenshots/"+filename)
-        same = imagecompare.compare_image("outputs/"+filename, "outputs/old_screenshots/"+filename, "outputs/comparison-"+filename, "outputs/mask-"+filename)
-        if same == True:
-            print(filename,"has not changed")
-        else:
+        is_different = imagecompare.compare_image("outputs/"+filename, "outputs/old_screenshots/"+filename, "outputs/comparison-"+filename, "outputs/mask-"+filename)
+        if is_different == True:
             print(filename,"has changed")
+        else:
+            print(filename,"hasn't changed")
     else:
         print("old file doesn't exist")
 

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Javascript tests</title>
+  <link rel="stylesheet" href="qunit-2.1.1.css">
+</head>
+<body>
+	<script>testing = true</script>
+  	<script src="../js/jquery.min.js"></script>
+  	<script src="qunit-2.1.1.js"></script>
+ 	<script src="sinon-1.17.7.js"></script>
+  	<!-- <script src="sinon-qunit-1.0.0.js"></script> --> <!-- I tried using this but it just kept failing because of a lack of third argument in the tests - it seems to work fine this way which is mostly the way described in Percival TDD with exception of server response wheich I had to do differently to make it work -->
+  	<script src="../js/utils.js"></script>
+  	
+  	<!-- set up the environment -->  	
+  	<script>		
+	  	var server, sandbox;
+	  	QUnit.testStart(function () {
+			server = sinon.fakeServer.create(); 
+	  	  	sandbox = sinon.sandbox.create();
+	  	});
+	  	QUnit.testDone(function () {
+	  		server.restore(); 
+	  		sandbox.restore();
+	  	});
+	  	
+	  	QUnit.test("test getCurrentQuery1", function (assert) {
+	  		var stub;
+	  		stub = sandbox.stub(utils, 'getCurrentLocationSearch').returns('?');
+	  		assert.equal(JSON.stringify(utils.getCurrentQuery()), '{}');
+	  	});
+	  	
+	  	QUnit.test("test getCurrentQuery2", function (assert) {
+	  		var stub;
+	  		stub = sandbox.stub(utils, 'getCurrentLocationSearch').returns('');
+	  		assert.equal(JSON.stringify(utils.getCurrentQuery()), '{}');
+	  	});
+	  	
+	  	QUnit.test("test getCurrentQuery3", function (assert) {
+	  		var stub, stub2;
+	  		stub = sandbox.stub(utils, 'getCurrentLocationSearch').returns('?test=me&hello=world');
+	  		stub2 = sandbox.stub(utils, 'getObjectFromQueryString').returns({"test": "me", "hello": "world"});
+	  		assert.equal(JSON.stringify(utils.getCurrentQuery()), JSON.stringify({"test": "me", "hello": "world"}));
+	  	});
+	  	
+	  	QUnit.test("test getObjectFromQueryString", function (assert) {
+	  		assert.equal(JSON.stringify(utils.getObjectFromQueryString('test=me&hello=world')), JSON.stringify({"test": "me", "hello": "world"}));
+	  	});
+	  	
+	  	QUnit.test("test getCookie", function (assert) {
+	  		document.cookie = 'project=test;another=cookie';
+	  		cookie = utils.getCookie('project');
+	  		assert.equal(cookie, 'test');
+	  	});
+	  	
+	  	QUnit.test("test templateSubstitute", function (assert) {
+	  		var template, mapping, result;
+	  		template = 'my {place1} for {place2} testing';
+	  		mapping = {"place1": 'template', "place2": 'substitution'};
+	  		result = 'my template for substitution testing';
+	  		assert.equal(utils.templateSubstitute(template, mapping), result);
+	  	});
+	  	
+	  	QUnit.test("test deleteElement", function (assert) {
+	  		utils.deleteElement(document.getElementById('child_div'));
+	  		assert.equal(document.getElementById('child_div'), null);
+	  		assert.notEqual(document.getElementById('parent_div'), null);
+	  	});
+	  	
+	  	QUnit.test("test getFunctionFromString", function (assert) {
+	  		var func;
+	  		func = utils.getFunctionFromString('deleteElement', 'utils');
+	  		//this just checks it finds something, if it doesn't you get undefined and a fail
+	  		assert.ok(func);
+	  	});
+	  	
+	  	QUnit.test("test getItemFromDatabase success", function (assert) {
+	  		var ajax_call;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		utils.getItemFromDatabase('citations', 'author', 1, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author', 
+	  										'method': 'GET',
+	  										'data': {'id': 1}}));
+	  		response_data = {"results": [{"id": 1, "abbreviation": 'Author1'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'success');
+	  	});
+	  	
+	  	QUnit.test("test getItemFromDatabase fail", function (assert) {
+	  		var ajax_call, response_data;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		utils.getItemFromDatabase('citations', 'author', 1, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author', 
+											'method': 'GET',
+											'data': {'id': 1}}));
+	  		response_data = {"detail": "Not found."};
+  			server.requests[0].respond(404, 
+  									{"Content-Type": "text/html"}, 
+  									JSON.stringify(response_data));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'failure');
+	  	});
+	  	
+		QUnit.test("test getItemsFromDatabase success", function (assert) {
+	  		var ajax_call, response_data;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		utils.getItemsFromDatabase('citations', 'author', {'any': 'criteria'}, 'GET', function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author', 
+	  										'method': 'GET',
+	  										'data': {'any': 'criteria'}}));
+	  		response_data = {"results": [{"id": 1, "abbreviation": 'Author1'}, {"id": 2, "abbreviation": 'Author2'}]};
+  			server.requests[0].respond(200, 
+  									{"Content-Type": "application/json"}, 
+  									JSON.stringify(response_data));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'success');
+	  	});		
+		//I am not sure that this can ever fail as if it doesn't find anything it just returns an empty list with all the pagination padding
+		//I suppose it could throw something but there is nothing in my python code that suggests it will
+	  	
+		
+		//none of these test for no CSRF tokens but that would be a 403 error
+		QUnit.test("test createItemInDatabase success", function (assert) {
+			//successful create is 201 status code
+			var ajax_call;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		utils.createItemInDatabase('citations', 'author', {'abbreviation': 'A1', 'language': 'grc'}, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author/create/', 
+	  										'headers': {'Content-Type': 'application/json'}, 
+    										'dataType': 'json', 
+    										'method': 'POST', 
+    										'data': JSON.stringify({'abbreviation': 'A1', 'language': 'grc'})}));
+	  		server.requests[0].respond(201, {"Content-Type": "application/json"}, JSON.stringify({'abbreviation': 'A1', 'language': 'grc'}));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'success');
+	  	});
+		
+		QUnit.test("test createItemInDatabase fail", function (assert) {
+			//fail is the same 400 code whether it is missing data or the abbreviation exists etc.
+			var ajax_call;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		utils.createItemInDatabase('citations', 'author', {'abbreviation': 'A1'}, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author/create/', 
+	  										'headers': {'Content-Type': 'application/json'}, 
+    										'dataType': 'json', 
+    										'method': 'POST', 
+    										'data': JSON.stringify({'abbreviation': 'A1'})}));
+	  		server.requests[0].respond(400, {"Content-Type": "application/json"}, JSON.stringify({"language":["This field is required."]}));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'failure');
+	  	});
+			
+		QUnit.test("test updateItemInDatabase success", function (assert) {
+			var ajax_call;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		//in reality all fields need to be present here but we are mocking anyway
+	  		//so not worth it here
+	  		utils.updateItemInDatabase('citations', 'author', {'id': 1, 'language': 'grc', 'abbreviation': 'A1'}, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author/update/1',
+							  			'headers': {'Content-Type': 'application/json'}, 
+						    			'dataType': 'json', 
+						    			'method': 'PUT', 
+						    			'data': JSON.stringify({'id': 1, 'language': 'grc', 'abbreviation': 'A1'})}));
+	  		server.requests[0].respond(200, {"Content-Type": "application/json"}, JSON.stringify({'id': 1, 'language': 'grc', 'abbreviation': 'A1'}));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'success');
+		});
+		//PUT success is 200 and returns object
+		//all fails 400
+		
+		QUnit.test("test updateItemInDatabase fail", function (assert) {
+			var ajax_call;
+	  		ajax_call = sandbox.spy($, 'ajax');
+	  		//in reality all fields need to be present here but we are mocking anyway
+	  		//so not worth it here
+	  		utils.updateItemInDatabase('citations', 'author', {'id': 1, 'abbreviation': 'A1'}, function (data) { 
+	  			document.getElementById('child_div').innerHTML = 'success'},
+	  			function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'failure'
+	  			});
+	  		assert.ok(ajax_call.calledOnce);
+	  		assert.ok(ajax_call.calledWith({'url': '/api/citations/author/update/1',
+							  			'headers': {'Content-Type': 'application/json'}, 
+						    			'dataType': 'json', 
+						    			'method': 'PUT', 
+						    			'data': JSON.stringify({'id': 1, 'abbreviation': 'A1'})}));
+	  		server.requests[0].respond(400, {"Content-Type": "application/json"}, JSON.stringify({"language":["This field is required."]}));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'failure');
+		});
+		
+		QUnit.test("test updateFieldsInDatabase success", function (assert) {
+			var ajax_call;
+			ajax_call = sandbox.spy($, 'ajax');
+			utils.updateFieldsInDatabase('citations', 'author', 1, {'comments': 'testing'}, function (data) { 
+		  			document.getElementById('child_div').innerHTML = 'success';
+		  		}, function (data) { 
+			  			document.getElementById('child_div').innerHTML = 'failure';
+		  		});
+			assert.ok(ajax_call.calledOnce);
+			assert.ok(ajax_call.calledWith({'url': '/api/citations/author/update/1',
+								  			'headers': {'Content-Type': 'application/json'}, 
+							    			'dataType': 'json', 
+							    			'method': 'PATCH', 
+							    			'data': JSON.stringify({'comments': 'testing'})}));
+			server.requests[0].respond(200, {"Content-Type": "application/json"}, JSON.stringify({'id': 1, 'language': 'grc', 'abbreviation': 'A1', 'comments': 'testing'}));
+	  		assert.equal(document.getElementById('child_div').innerHTML, 'success');
+		});
+		//success 200
+		//fail 500 if field not in model
+		
+ 		QUnit.test("test updateFieldsInDatabase fail", function (assert) {
+ 			var ajax_call;
+ 			ajax_call = sandbox.spy($, 'ajax');
+ 			utils.updateFieldsInDatabase('citations', 'author', 1, {'comments': 'testing'}, function (data) { 
+ 	  				document.getElementById('child_div').innerHTML = 'success';
+ 	  			}, function (data) { 
+ 		  			document.getElementById('child_div').innerHTML = 'failure';
+ 	  			});
+ 			assert.ok(ajax_call.calledOnce);
+ 			assert.ok(ajax_call.calledWith({'url': '/api/citations/author/update/1',
+ 								  			'headers': {'Content-Type': 'application/json'}, 
+ 							    			'dataType': 'json', 
+ 							    			'method': 'PATCH', 
+ 							    			'data': JSON.stringify({'comments': 'testing'})}));
+ 			server.requests[0].respond(500, {"Content-Type": "text/html"}, '<h1>Server Error (500)</h1>');
+ 	  		assert.equal(document.getElementById('child_div').innerHTML, 'failure');
+ 		});
+
+//delete test should delete utils.createItemInDatabase('citations', 'author', {'abbreviation': 'A1', 'language': 'grc'})
+		
+		//404 is when there is no author
+		//204 seems to delete be the success code
+		QUnit.test("test deleteItemFromDatabase success", function (assert) {
+			var ajax_call;
+ 			ajax_call = sandbox.spy($, 'ajax');
+ 			utils.deleteItemFromDatabase('citations', 'author', 1, function (data) { 
+ 	  				document.getElementById('child_div').innerHTML = 'success';
+ 	  			}, function (data) { 
+ 		  			document.getElementById('child_div').innerHTML = 'failure';
+ 	  			});
+ 			assert.ok(ajax_call.calledOnce);
+ 			assert.ok(ajax_call.calledWith({'url': '/api/citations/author/delete/1',
+ 											'method': 'DELETE'}));
+ 			server.requests[0].respond(204);
+ 			assert.equal(document.getElementById('child_div').innerHTML, 'success');
+		});
+		
+		QUnit.test("test deleteItemFromDatabase fail", function (assert) {
+			var ajax_call;
+ 			ajax_call = sandbox.spy($, 'ajax');
+ 			utils.deleteItemFromDatabase('citations', 'author', 2, function (data) { 
+ 	  				document.getElementById('child_div').innerHTML = 'success';
+ 	  			}, function (data) { 
+ 		  			document.getElementById('child_div').innerHTML = 'failure';
+ 	  			});
+ 			assert.ok(ajax_call.calledOnce);
+ 			assert.ok(ajax_call.calledWith({'url': '/api/citations/author/delete/2',
+ 											'method': 'DELETE'}));
+ 			server.requests[0].respond(404);
+ 			assert.equal(document.getElementById('child_div').innerHTML, 'failure');
+		});
+		
+	  	
+  	</script> 
+
+  	<script>testing = false</script>
+  	<div id="qunit"></div>
+ 	<div id="qunit-fixture">
+ 		<div id="parent_div">
+ 			<div id="child_div">
+ 			</div>
+ 		</div>
+	</div>  
+</body>
+</html>	  	

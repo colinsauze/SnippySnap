@@ -1,6 +1,8 @@
+import time
 from selenium import webdriver
 from makereport import generate_report
 import take_screenshot
+
 
 
 def wait_for(function_with_assertion, timeout=10):
